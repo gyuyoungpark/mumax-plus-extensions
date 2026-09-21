@@ -433,6 +433,9 @@ class Antiferromagnet(Magnet):
         """Total energy density of both sublattices combined (J/m³). Kinetic and
         elastic energy densities of the antiferromagnet are also included if
         elastodynamics is enabled.
+
+        The optional cavity oscillator energy and its spin-cavity Zeeman cross
+        term are not included in this quantity.
         
         See Also
         --------
@@ -446,6 +449,10 @@ class Antiferromagnet(Magnet):
         """Total energy of both sublattices combined (J). Kinetic and elastic
         energies of the antiferromagnet are also included if elastodynamics is
         enabled.
+
+        The optional cavity oscillator energy and its spin-cavity Zeeman cross
+        term are not included in this quantity. Coupled-system energy checks
+        must evaluate the declared oscillator and interaction energy as well.
         
         See Also
         --------

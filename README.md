@@ -30,6 +30,7 @@ These additions do not certify the existing local/spatial DMI or finite-sample N
 
 This fork adds physics extensions on top of mumax⁺. Companion source and simulation code for each extension lives under [`extensions/`](extensions). Currently included:
 
+- [`extensions/photon-magnon`](extensions/photon-magnon) — Energy-derived, uniform-Zeeman antiferromagnet–cavity dynamics with native Gilbert damping, plus source-only examples for response-shape controls and independently calibrated exceptional-point predictions. Build with double precision for these small-effect comparisons.
 - [`extensions/SAW-magnonics`](extensions/SAW-magnonics) — Chiral surface-acoustic-wave kernel with switchable magnetoelastic, magneto-rotation, and Barnett channels, plus the simulation scripts that reproduce the datasets of *Finite-Momentum Parametric Magnon Pairing by Traveling Surface Acoustic Waves* (Physical Review Applied, submitted).
 
 ## Installation

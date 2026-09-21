@@ -1,0 +1,21 @@
+# Generated observations, calibration, predictions, figures and reports.
+runs/
+**/__pycache__/
+*.pyc
+*.npz
+*.npy
+*.pdf
+*.png
+*.svg
+*.csv
+*.log
+*.json
+!source_map.json
+**/public/
+**/private/
+**/fit/
+**/source_versions/
+**/isolated_public_replay/
+**/REPORT.md
+**/progress.json
+**/predictions_frozen.sha256

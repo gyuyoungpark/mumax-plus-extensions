@@ -16,9 +16,19 @@ Antiferromagnet::Antiferromagnet(std::shared_ptr<System> system_ptr,
                                  std::string name)
     : HostMagnet(system_ptr, name),
       sub1_(Ferromagnet(system_ptr, name + ":sublattice_1", this)),
-      sub2_(Ferromagnet(system_ptr, name + ":sublattice_2", this)) {
+      sub2_(Ferromagnet(system_ptr, name + ":sublattice_2", this)),
+      cavityAmplitude_(Variable(
+          std::make_shared<System>(system_ptr->world(), Grid(int3{1, 1, 1}),
+                                  GpuBuffer<bool>(), GpuBuffer<unsigned int>()),
+          3, name + ":cavity_amplitude", "1")),
+      auxAmplitude_(Variable(
+          std::make_shared<System>(system_ptr->world(), Grid(int3{1, 1, 1}),
+                                  GpuBuffer<bool>(), GpuBuffer<unsigned int>()),
+          3, name + ":aux_amplitude", "1")) {
         addSublattice(&sub1_);
         addSublattice(&sub2_);
+        cavityAmplitude_.set(real3{0, 0, 0});
+        auxAmplitude_.set(real3{0, 0, 0});
       }
       
 Antiferromagnet::Antiferromagnet(MumaxWorld* world,
@@ -34,6 +44,14 @@ const Ferromagnet* Antiferromagnet::sub1() const {
 
 const Ferromagnet* Antiferromagnet::sub2() const {
   return &sub2_;
+}
+
+std::shared_ptr<const System> Antiferromagnet::cavityAmplitudeSystem() const {
+  return cavityAmplitude_.system();
+}
+
+std::shared_ptr<const System> Antiferromagnet::auxAmplitudeSystem() const {
+  return auxAmplitude_.system();
 }
 
 void Antiferromagnet::minimize(real tol, int nSamples) {

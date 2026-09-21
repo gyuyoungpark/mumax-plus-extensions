@@ -116,6 +116,9 @@ void wrap_world(py::module& m) {
                              
       .def("minimize", &MumaxWorld::minimize, py::arg("tol"), py::arg("nsamples"))
       .def("relax", &MumaxWorld::relax, py::arg("tol"))
+      .def("reset_timesolver_equations", [](MumaxWorld& world) {
+          world.resetTimeSolverEquations();
+      })
 
       // PBC
       .def_property_readonly("bounding_grid", &MumaxWorld::boundingGrid,

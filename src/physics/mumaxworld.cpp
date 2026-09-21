@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "antiferromagnet.hpp"
+#include "cavityafm.hpp"
 #include "datatypes.hpp"
 #include "dynamicequation.hpp"
 #include "elastodynamics.hpp"
@@ -214,6 +215,21 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
         std::shared_ptr<FieldQuantity>(torque(sub).clone()),
         std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(sub).clone()));
       equations.push_back(eq);
+    }
+  }
+
+  // Add oscillator coordinates to the same Runge-Kutta stages as the spins.
+  for (const auto& namedMagnet : antiferromagnets_) {
+    const Antiferromagnet* magnet = namedMagnet.second.get();
+    if (magnet->enableCavityAfm) {
+      equations.emplace_back(
+          magnet->cavityAmplitude(),
+          std::shared_ptr<FieldQuantity>(new CavityAfmRHSQuantity(magnet)));
+      if (magnet->enableAuxMode) {
+        equations.emplace_back(
+            magnet->auxAmplitude(),
+            std::shared_ptr<FieldQuantity>(new AuxModeRHSQuantity(magnet)));
+      }
     }
   }
 

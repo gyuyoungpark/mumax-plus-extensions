@@ -4,6 +4,7 @@
 #include "afmtype.hpp"
 #include "anisotropy.hpp"
 #include "antiferromagnet.hpp"
+#include "cavityafm.hpp"
 #include "chiralsawfield.hpp"
 #include "demag.hpp"
 #include "dmi.hpp"
@@ -62,6 +63,10 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
   // Homogeneous (local) DMI term
   if (!homoDmiAssuredZero(magnet)) {
     h += evalHomoDmiField(magnet);
+  }
+  // The same uniform field enters precession and Gilbert damping.
+  if (!cavityAfmAssuredZero(magnet)) {
+    h += evalCavityAfmField(magnet);
   }
   return h;
 }

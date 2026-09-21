@@ -1,0 +1,108 @@
+{
+  "scope": "Code provenance only. No source records, fitted coefficients, frozen predictions, manuscript or reviewer documents are distributed.",
+  "files": [
+    {
+      "path": "single_message_ep/primary/zero_field_ep.py",
+      "validated_source_sha256": "eabd6357bf0d7a73229a1b57a3e7553fd2197458f8672a222aa7b9d90dcae56f",
+      "published_source_sha256": "7139e56099ab66152d63231409d7c52cf0cbddca1ce127f62b89c5b25eb45f18",
+      "portability_changes": [
+        "Use bundled frozen energy source only; remove local source fallback and absolute path output.",
+        "Replace internal manuscript cross-reference with standalone model description."
+      ]
+    },
+    {
+      "path": "single_message_ep/primary/inputs/energy_model.py",
+      "validated_source_sha256": "a69d062d8cc6d2fb0d5f2f165ebcea0166f53ffbac2aebb6819573f7f4b7b708",
+      "published_source_sha256": "a69d062d8cc6d2fb0d5f2f165ebcea0166f53ffbac2aebb6819573f7f4b7b708",
+      "portability_changes": [
+        "No scientific or runtime changes; line endings normalized only."
+      ]
+    },
+    {
+      "path": "single_message_ep/independent/audit_zero_field_ep.py",
+      "validated_source_sha256": "168a0eec75bcebf6b8b7b37d144a10d82b0cecdfdf0e2db67620c5f0d54ae016",
+      "published_source_sha256": "168a0eec75bcebf6b8b7b37d144a10d82b0cecdfdf0e2db67620c5f0d54ae016",
+      "portability_changes": [
+        "No scientific or runtime changes; line endings normalized only."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c1/run_c1.py",
+      "validated_source_sha256": "3448dd6de6120366300d5a234de67c255111aa358de876d3e10b3849ed419380",
+      "published_source_sha256": "b906ea13fe0a4f75d16faf84dfdce1df4c6517ee46b439e9c00ad461164ba4ee",
+      "portability_changes": [
+        "Record package-relative input paths; all numerical code unchanged."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c3/predict.py",
+      "validated_source_sha256": "115be2dd0973f4cf2233cfc8153fe4488bc386bf25afdd4b755eb6a9ecfb04d6",
+      "published_source_sha256": "115be2dd0973f4cf2233cfc8153fe4488bc386bf25afdd4b755eb6a9ecfb04d6",
+      "portability_changes": [
+        "No scientific or runtime changes; line endings normalized only."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c3/prepare_public_settings.py",
+      "validated_source_sha256": "9c26307089f65f02670445aa2b8fa357c6b4afe5c52eb87381205a02bd75abd5",
+      "published_source_sha256": "8905863bcfbb871a38555ba8d692b8730a73e2e756dca563680be146cfb5874f",
+      "portability_changes": [
+        "Clarify numerical predictor separation without implying an externally blinded experiment."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c3/validate.py",
+      "validated_source_sha256": "b7e0d03f91b7737163c0fa1afc6356007a3d210ae318f846710112606701327a",
+      "published_source_sha256": "b7e0d03f91b7737163c0fa1afc6356007a3d210ae318f846710112606701327a",
+      "portability_changes": [
+        "No scientific or runtime changes; line endings normalized only."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c4/run_c4.py",
+      "validated_source_sha256": "9f807fd20bfffaec149db17a23ac5a84351580616e289faf5023a14825298c6b",
+      "published_source_sha256": "78e628b65852316d2e3235a16991aa88a6aa9749a244f2c3764f94c77127e212",
+      "portability_changes": [
+        "Replace internal coordination wording; generate minimal runtime protocol metadata if absent.",
+        "Numerical inputs, solver, diagnostic ranges and equations unchanged."
+      ]
+    },
+    {
+      "path": "run_cpu.py",
+      "validated_source_sha256": null,
+      "published_source_sha256": "9a4537c90884b22abd18d11bb9f90f56ee1a1533df7023aa489c67d051360cc6",
+      "portability_changes": [
+        "New packaging/orchestration helper. Copies public source into a new run directory and calls the existing scientific scripts.",
+        "The explicit synthetic identity demo generates analytic coefficients using the included fixed-pole model; it does not load or ship original data or imply independent GPU evidence."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c2/run_gpu.py",
+      "validated_source_sha256": "32b2bf86a59bcf7bd5bf1837e690ddf05b8a2664f8edb6c8d42b8bb3302ba599",
+      "published_source_sha256": "27b345cc7d99ab16f4a51915828a5f81fda0039792cbc8a68db3266789d89198",
+      "portability_changes": [
+        "Use the currently installed DOUBLE runtime and explicit capability checks; remove private DLL paths and historical binary hash requirements.",
+        "Use a common output root, record new runtime/source provenance, explicitly set the declared gyromagnetic ratio, and generate the final 28-record protocol by default."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c2/fit_public.py",
+      "validated_source_sha256": "5845f31117a619955435eea1f6a75fc191a4d4bceac764445cdfaf99b7654da3",
+      "published_source_sha256": "c9597a79b2c01262b82a5e09787ee1c19c1ef6b4393f9fa79115ae0827ed7818",
+      "portability_changes": [
+        "Keep pole fitting, convolution, coefficient fitting and numerical envelope calculations; use an explicit common output root and relative public read paths.",
+        "Require final-protocol records by default, allow isolated public inputs, and mark partial development fits as ineligible for freezing.",
+        "Normalize line endings to LF for stable Git source hashes."
+      ]
+    },
+    {
+      "path": "response_shape_validation/c2/validate_and_freeze.py",
+      "validated_source_sha256": "808b50ca6c4a6d841cc9d3375894379e1e5d4f7d7eab4ea345a162f56ea8375f",
+      "published_source_sha256": "9c7dc9e8cfe592015a32c35b9602535751904b08eb11b8f90fd4305fe8da1a05",
+      "portability_changes": [
+        "Freeze new public calibration with fitter/observation hashes before reading generated model truth.",
+        "Use new runtime/source provenance and common output root; remove historical execution-source special cases and preserve frozen files."
+      ]
+    }
+  ]
+}
