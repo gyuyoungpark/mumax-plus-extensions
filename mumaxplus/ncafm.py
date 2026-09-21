@@ -234,6 +234,29 @@ class NcAfm(Magnet):
                           + " Make sure this is intentional!", UserWarning)
 
     @property
+    def ncafmex_nn_dir(self) -> Parameter:
+        """Directional intersublattice exchange stiffnesses (J/m).
+
+        The components add sum_{i<j,d} A_d * (d_d m_i).(d_d m_j) along
+        the Cartesian x, y, and z grid axes. They do not replace ncafmex_nn;
+        set that scalar parameter to zero to use only the directional term.
+
+        All sublattices must have enable_openbc=True. Periodic neighbors
+        remain coupled. The same inter_ncafmex_nn and scale_ncafmex_nn
+        parameters control region interfaces for scalar and directional terms.
+        These continuum stiffnesses do not define an atomistic bond graph.
+
+        See Also
+        --------
+        ncafmex_nn, ncafmex_cell, Ferromagnet.enable_openbc
+        """
+        return Parameter(self._impl.ncafmex_nn_dir)
+
+    @ncafmex_nn_dir.setter
+    def ncafmex_nn_dir(self, value):
+        self.ncafmex_nn_dir.set(value)
+
+    @property
     def inter_ncafmex_nn(self) -> Parameter:
         """Interregional non-collinear antiferromagnetic exchange constant (J/m).
         If set to zero (default), then the harmonic mean of the exchange constants
@@ -372,10 +395,65 @@ class NcAfm(Magnet):
     # ----- QUANTITIES ----------------------
     @property
     def octupole_vector(self) -> FieldQuantity:
-        """Weighted dimensionless octupole vector of a non-collinear
-        antiferromagnet as defined in https://doi.org/10.1038/s41563-023-01620-2.
+        """Fixed-index dimensionless sublattice order parameter.
+
+        Returns sum_i Ms_i * Rz(-2*pi*i/3) * m_i / sum_i Ms_i, with
+        i=0,1,2 for sub1,sub2,sub3. Rotations are about lab z and are
+        attached to the sublattice indices. Zero-total-Ms cells return zero.
+
+        This convention describes one planar 120-degree order channel.
+        It does not include a post-rotation mirror or atomic coordinates;
+        it is not a complete cluster multipole tensor or a Hall response.
+        Its z component is normalized net z magnetization. Material and
+        transport interpretations require an explicit crystal/site mapping.
         """
         return FieldQuantity(_cpp.octupole_vector(self._impl))
+
+    @property
+    def k6_oct(self) -> Parameter:
+        """Per-sublattice sixfold anisotropy coefficient (J/m^3).
+
+        The lab-frame energy is k6_oct * my^2 * (3*mx^2 - my^2)^2.
+        A rigid planar 120-degree triad has total energy density
+        3*k6_oct*sin(3*phi)^2 and barrier 3*abs(k6_oct). For positive
+        k6_oct, adjacent minima are 60 degrees apart; the intervening
+        maximum is 30 degrees from either minimum.
+
+        Off plane this polynomial is not a pure Stevens anisotropy, and
+        outside the rigid triad it is not an energy of octupole_vector alone.
+        The axes are fixed to the simulation frame, independently of anisU.
+        No material-specific anisotropy conversion is implied.
+
+        See Also
+        --------
+        oct_k6_field, oct_k6_energy_density, oct_k6_energy
+        """
+        return Parameter(self._impl.k6_oct)
+
+    @k6_oct.setter
+    def k6_oct(self, value):
+        self.k6_oct.set(value)
+
+    def oct_k6_field(self, sub_index: int = 0) -> FieldQuantity:
+        """Sixfold anisotropy field of sublattice 0, 1, or 2 (T)."""
+        if not isinstance(sub_index, (int, _np.integer)) or not 0 <= sub_index < 3:
+            raise IndexError("sub_index must be 0, 1, or 2")
+        sub = self.sublattices[sub_index]
+        return FieldQuantity(_cpp.oct_k6_field(sub._impl))
+
+    def oct_k6_energy_density(self, sub_index: int = 0) -> FieldQuantity:
+        """Sixfold anisotropy density of sublattice 0, 1, or 2 (J/m^3)."""
+        if not isinstance(sub_index, (int, _np.integer)) or not 0 <= sub_index < 3:
+            raise IndexError("sub_index must be 0, 1, or 2")
+        sub = self.sublattices[sub_index]
+        return FieldQuantity(_cpp.oct_k6_energy_density(sub._impl))
+
+    def oct_k6_energy(self, sub_index: int = 0) -> ScalarQuantity:
+        """Sixfold anisotropy energy of sublattice 0, 1, or 2 (J)."""
+        if not isinstance(sub_index, (int, _np.integer)) or not 0 <= sub_index < 3:
+            raise IndexError("sub_index must be 0, 1, or 2")
+        sub = self.sublattices[sub_index]
+        return ScalarQuantity(_cpp.oct_k6_energy(sub._impl))
 
     @property
     def full_magnetization(self) -> FieldQuantity:

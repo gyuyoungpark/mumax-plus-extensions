@@ -19,6 +19,15 @@ All demonstrations in the paper were simulated using version [v1.1.0](https://gi
 
 ## Extensions
 
+Experimental source-only AFM additions:
+
+- [`extensions/afm`](extensions/afm): directional intersublattice exchange shared by `Antiferromagnet` and `NcAfm`. It requires `enable_openbc=True` on all sublattices; periodic wrapping remains supported. Continuum coefficient signs alone do not specify atomic A/C/G ordering.
+- [`extensions/ncafm`](extensions/ncafm): phenomenological sixfold anisotropy and a fixed-index sublattice order parameter. These are not a material-calibrated Hamiltonian or an electronic Hall model.
+
+Both modules are compiled with the core library. Their Python interfaces are part of `mumaxplus`; no separate package installation is needed.
+
+These additions do not certify the existing local/spatial DMI or finite-sample Neumann implementations. In particular, the upstream total energy omits the local DMI term. Hall-response, director-DMI, and additional spin-orbit-torque kernels are not included in these modules.
+
 This fork adds physics extensions on top of mumax⁺. Companion source and simulation code for each extension lives under [`extensions/`](extensions). Currently included:
 
 - [`extensions/SAW-magnonics`](extensions/SAW-magnonics) — Chiral surface-acoustic-wave kernel with switchable magnetoelastic, magneto-rotation, and Barnett channels, plus the simulation scripts that reproduce the datasets of *Finite-Momentum Parametric Magnon Pairing by Traveling Surface Acoustic Waves* (Physical Review Applied, submitted).

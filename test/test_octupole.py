@@ -13,17 +13,14 @@ def max_semirelative_error(result, wanted):
 
 def compute_octupole_vector(m1, m2, m3, ms1, ms2, ms3):
 
-    def rotate_120(m, ref):
-        k = np.cross(ref, m, axis=0)
-        k /= np.linalg.norm(k, axis=0)
-        s = np.sign(np.sum(ref * m, axis=0))
-        s[s == 0] = 1 # perpendicular vectors
-        return -0.5 * m + np.cross(k, m, axis=0) * (np.sqrt(3) / 2) * s
+    def rotate(m, angle):
+        return np.array([np.cos(angle) * m[0] - np.sin(angle) * m[1],
+                         np.sin(angle) * m[0] + np.cos(angle) * m[1], m[2]])
 
-    m2r = rotate_120(m2, m1)
-    m3r = rotate_120(m3, m1)
-
-    return (m1 * ms1 + m2r * ms2 + m3r * ms3) / (ms1 + ms2 + ms3)
+    numerator = (m1 * ms1 + rotate(m2, -2 * np.pi / 3) * ms2 +
+                 rotate(m3, -4 * np.pi / 3) * ms3)
+    total = ms1 + ms2 + ms3
+    return np.divide(numerator, total, out=np.zeros_like(numerator), where=total != 0)
 
 class TestOctupoleVector:
     def test_octupole_vector(self):
@@ -48,7 +45,7 @@ class TestOctupoleVector:
         magnet.magnetization = (1, 0, 0)
 
         result = magnet.octupole_vector()
-        assert result.all() == 0
+        assert np.allclose(result, 0, atol=1e-6)
 
     def test_octupole_vector_120(self):
         world = World((1, 1, 1))
@@ -60,3 +57,22 @@ class TestOctupoleVector:
 
         result = magnet.octupole_vector()
         assert np.allclose(result.squeeze(), [1, 0, 0])
+
+    def test_reversed_index_chirality(self):
+        world = World((1, 1, 1))
+        magnet = NcAfm(world, Grid((1, 1, 1)))
+        magnet.msat = 10
+        for i, sub in enumerate(magnet.sublattices):
+            theta = -i * 2 * np.pi / 3
+            sub.magnetization = (np.cos(theta), np.sin(theta), 0)
+        assert np.allclose(magnet.octupole_vector(), 0, atol=1e-6)
+
+    def test_local_zero_ms(self):
+        world = World((1, 1, 1))
+        magnet = NcAfm(world, Grid((2, 1, 1)))
+        magnet.msat = np.array([[[[10.0, 0.0]]]])
+        magnet.magnetization = (0, 0, 1)
+        result = magnet.octupole_vector()
+        assert np.isfinite(result).all()
+        assert np.allclose(result[:, 0, 0, 0], [0, 0, 1])
+        assert np.allclose(result[:, 0, 0, 1], 0)

@@ -4,6 +4,9 @@ recursive-include examples *.py *ipynb
 
 graft src
 
+recursive-include extensions/afm *.cu *.hpp CMakeLists.txt
+recursive-include extensions/ncafm *.cu *.hpp CMakeLists.txt
+
 graft docs
 prune docs/_api
 prune docs/_build

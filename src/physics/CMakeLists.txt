@@ -68,8 +68,6 @@ add_library(physics STATIC
     neel.hpp
     newell.cu
     newell.hpp
-    octupole.cu
-    octupole.hpp
     poissonsystem.hpp
     poissonsystem.cu
     poyntingvector.cu
@@ -105,6 +103,11 @@ target_include_directories(physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTOR
 target_include_directories(physics PUBLIC .)
 
 target_link_libraries(physics PUBLIC core linsolver)
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/extensions/afm
+                 ${CMAKE_CURRENT_BINARY_DIR}/extensions/afm)
+add_subdirectory(${PROJECT_SOURCE_DIR}/extensions/ncafm
+                 ${CMAKE_CURRENT_BINARY_DIR}/extensions/ncafm)
 
 link_directories(${CUDA_LIBRARY_DIR})
 target_link_libraries(physics PRIVATE cufft curand)

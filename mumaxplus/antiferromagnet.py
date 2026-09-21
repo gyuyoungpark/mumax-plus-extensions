@@ -226,6 +226,33 @@ class Antiferromagnet(Magnet):
                           + " Make sure this is intentional!", UserWarning)
 
     @property
+    def afmex_nn_dir(self) -> Parameter:
+        """Directional intersublattice exchange stiffnesses (J/m).
+
+        The components add cross-gradient terms along the Cartesian x, y,
+        and z grid axes. For uniform coefficients, the energy density is
+        sum_d A_d * (d_d m1).(d_d m2). These terms are added to afmex_nn;
+        set afmex_nn to zero when replacing the scalar interaction.
+
+        All sublattices must have enable_openbc=True. Missing bonds are
+        omitted; periodic neighbors remain coupled. Region interfaces use
+        scale_afmex_nn times inter_afmex_nn when the latter is nonzero,
+        otherwise the harmonic mean of the directional coefficients.
+
+        A/C/G-type labels require a separate mapping from continuum fields
+        to atomic sites. Coefficient signs alone do not define that mapping.
+
+        See Also
+        --------
+        afmex_nn, afmex_cell, Ferromagnet.enable_openbc
+        """
+        return Parameter(self._impl.afmex_nn_dir)
+
+    @afmex_nn_dir.setter
+    def afmex_nn_dir(self, value):
+        self.afmex_nn_dir.set(value)
+
+    @property
     def inter_afmex_nn(self) -> InterParameter:
         """Interregional antiferromagnetic exchange constant (J/m).
         If set to zero (default), then the harmonic mean of
