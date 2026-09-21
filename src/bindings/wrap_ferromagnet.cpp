@@ -63,6 +63,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_readonly("xi", &Ferromagnet::xi)
       .def_readonly("pol", &Ferromagnet::pol)
       .def_readonly("jcur", &Ferromagnet::jcur)
+      .def_property("thermal_seed", &Ferromagnet::thermalSeed, &Ferromagnet::setThermalSeed)
       .def_readonly("temperature", &Ferromagnet::temperature)
       .def_readonly("dmi_tensor", &Ferromagnet::dmiTensor)
       .def_readonly("applied_potential", &Ferromagnet::appliedPotential)
@@ -156,6 +157,7 @@ void wrap_ferromagnet(py::module& m) {
   m.def("magneto_rotation_energy", &magnetoRotationEnergyQuantity);
 
   // Spin-rotation coupling (Barnett effect)
+  m.def("chiral_saw_field", &chiralSAWFieldQuantity);
   m.def("spin_rotation_field", &spinRotationFieldQuantity);
   m.def("spin_rotation_energy_density",
         &spinRotationEnergyDensityQuantity);

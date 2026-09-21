@@ -1,36 +1,20 @@
-# Data archive
+# Data archive status
 
-The simulation scripts in `src/` write per-run NumPy archives
-(`.npz`) into a `data/` directory at the SAW-magnonics root. Total
-size of the cached datasets used for the published main-text and
-supplemental figures is approximately 300 MB, dominated by the
-$k$-resolved $m_y(x,t)$ snapshots of `sim37_suhl_control.npz`
-(16 MB), `sim38_nonreciprocal.npz` (16 MB), and
-`sim40_eps_kresolved.npz` (71 MB). These exceed GitHub's
-recommended per-file size limit and are therefore not hosted in
-this repository.
+This is a source-code update. Raw magnetization trajectories, GPU checkpoints,
+build binaries, and ongoing validation outputs are not included. No persistent
+complete data-archive identifier is assigned by this update.
 
-## Obtaining the cached data
+Historical `src/sim*.py` scripts refer to archives under `data/`; the revision
+drivers write separate output directories. Analysis scripts that require those
+inputs are not data-independent tests. A successful source import does not
+certify the old results, and the presence of an old summary is not proof that its
+raw inputs are complete or match the current code.
 
-The full data archive (including per-sweep checkpoints) is
-available from the corresponding authors of the manuscript on
-reasonable request, and is provided to referees during peer
-review.
+The earlier blanket statement that every legacy script is self-contained and
+checkpoint-resumable is withdrawn. Review its source and protect existing data
+before running a historical script. For new validation, use the identity-checked
+drivers and the prerequisites described in `SOURCE_UPDATE.md`.
 
-## Regenerating the data from scratch
-
-All `sim*.py` scripts under `src/` are checkpoint-resumable and
-self-contained. Running them on a single CUDA GPU regenerates
-every cached dataset. Approximate wall-clock costs (NVIDIA RTX
-4090, single precision):
-
-| Script | Cost |
-|---|---|
-| `sim23_fft_proof.py` | ~10 min |
-| `sim24_grid_convergence.py` | ~30 min |
-| `sim21_eps_threshold.py` | 6 strain × 40 frequency × 2 channel ≈ 8–10 h |
-| `sim37_suhl_control.py` | 2 runs of 20 ns @ 2048×8 ≈ 30 min |
-| `sim38_nonreciprocal.py` | 2 runs of 15 ns @ 1024×8 ≈ 15 min |
-| `sim40_eps_kresolved.py` | 8 strain × 3 channel ≈ 3–4 h |
-
-Other simulation scripts complete in a few minutes each.
+Future data releases must identify the actual source, build, inputs, and completed
+raw outputs together. A current source commit must not be assigned retrospectively
+to old data without evidence of that connection.

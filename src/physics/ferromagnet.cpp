@@ -2,6 +2,7 @@
 
 #include <curand.h>
 #include <chrono>
+#include <stdexcept>
 
 #include <memory>
 #include <random>
@@ -92,9 +93,10 @@ Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr,
   }
   // Initialize CUDA RNG
   // TODO: move the generator to somewhere else
-  curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);
-  curandSetPseudoRandomGeneratorSeed(randomGenerator,
-  static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+  if (curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT) != CURAND_STATUS_SUCCESS)
+    throw std::runtime_error("Cannot create thermal random generator");
+  setThermalSeed(static_cast<std::uint64_t>(
+      std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 }
 
 Ferromagnet::Ferromagnet(MumaxWorld* world,
@@ -103,6 +105,13 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
                          GpuBuffer<bool> geometry,
                          GpuBuffer<unsigned int> regions)
     : Ferromagnet(std::make_shared<System>(world, grid, geometry, regions), name) {}
+
+void Ferromagnet::setThermalSeed(std::uint64_t seed) {
+  if (curandSetPseudoRandomGeneratorSeed(randomGenerator, seed) != CURAND_STATUS_SUCCESS ||
+      curandSetGeneratorOffset(randomGenerator, 0ULL) != CURAND_STATUS_SUCCESS)
+    throw std::runtime_error("Cannot reset thermal random generator");
+  thermalSeed_ = seed;
+}
 
 Ferromagnet::~Ferromagnet() {
   curandDestroyGenerator(randomGenerator);

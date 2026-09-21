@@ -94,18 +94,20 @@ void TimeSolver::runwhile(std::function<bool(void)> runcondition) {
   }
 }
 
-void TimeSolver::run(real duration) {
+void TimeSolver::run(double duration) {
   if (duration <= 0)
     return;
-  real stoptime = time_ + duration;
+  double stoptime = time_ + duration;
   auto runcondition = [this, stoptime]() {
     return this->time() < stoptime - this->timestep();
   };
   runwhile(runcondition);
 
   // make final time step to end exactly at stoptime
-  real oldTimestep = timestep();
-  setTimeStep(stoptime - time_);
-  step();
-  if (fixedTimeStep_) setTimeStep(oldTimestep);
+  if (stoptime > time_) {
+    real oldTimestep = timestep();
+    setTimeStep(static_cast<real>(stoptime - time_));
+    step();
+    if (fixedTimeStep_) setTimeStep(oldTimestep);
+  }
 }

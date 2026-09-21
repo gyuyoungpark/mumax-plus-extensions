@@ -33,7 +33,7 @@ void RungeKuttaStepper::step() {
   for (auto eq : solver_->equations())
     equations.emplace_back(eq, *this);
 
-  real t0 = solver_->time();
+  double t0 = solver_->time();
 
   bool success = false;
   while (!success) {

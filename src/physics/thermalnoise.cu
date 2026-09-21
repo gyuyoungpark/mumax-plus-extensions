@@ -1,9 +1,11 @@
 #include <curand.h>
+#include <stdexcept>
 
 #include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
+#include "gpubuffer.hpp"
 #include "parameter.hpp"
 #include "thermalnoise.hpp"
 #include "world.hpp"
@@ -33,8 +35,12 @@ __global__ void k_thermalNoise(CuField noiseField,
     return;
   }
 
-  if (!noiseField.cellInGrid(idx) || msat.valueAt(idx) == 0)
+  if (!noiseField.cellInGrid(idx))
     return;
+  if (msat.valueAt(idx) == 0) {
+    noiseField.setVectorInCell(idx, real3{0, 0, 0});
+    return;
+  }
 
   real Ms = msat.valueAt(idx);
   real T = temperature.valueAt(idx);
@@ -57,9 +63,18 @@ Field evalThermalNoise(const Ferromagnet* magnet) {
   int N = noise.grid().ncells();
   real mean = 0.0;
   real stddev = 1.0;
+  // cuRAND normal generation requires an even element count. A one-cell
+  // macrospin (or any odd-sized grid) must not leave uninitialized noise.
+  const int paddedN = N + (N % 2);
+  GpuBuffer<real> scratch(N % 2 ? paddedN : 0);
   for (int c = 0; c < 3; c++) {
-    generateRandNormal(magnet->randomGenerator, noise.device_ptr(c), N, mean,
-                       stddev);
+    real* destination = N % 2 ? scratch.get() : noise.device_ptr(c);
+    if (generateRandNormal(magnet->randomGenerator, destination, paddedN,
+                           mean, stddev) != CURAND_STATUS_SUCCESS)
+      throw std::runtime_error("Thermal Gaussian generation failed");
+    if (N % 2 && cudaMemcpy(noise.device_ptr(c), destination, N * sizeof(real),
+                           cudaMemcpyDeviceToDevice) != cudaSuccess)
+      throw std::runtime_error("Thermal Gaussian buffer copy failed");
   }
 
   auto msat = magnet->msat.cu();

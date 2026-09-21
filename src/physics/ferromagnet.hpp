@@ -1,6 +1,7 @@
 #pragma once
 
 #include <curand.h>
+#include <cstdint>
 
 #include <map>
 #include <memory>
@@ -90,6 +91,11 @@ class Ferromagnet : public Magnet {
   real RelaxTorqueThreshold;
   
   curandGenerator_t randomGenerator;
+  std::uint64_t thermalSeed() const { return thermalSeed_; }
+  void setThermalSeed(std::uint64_t seed);
+ private:
+  std::uint64_t thermalSeed_;
+ public:
 
   DmiTensor dmiTensor;
 

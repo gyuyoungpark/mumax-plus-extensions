@@ -15,3 +15,18 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+
+# Revision outputs and machine-specific build/run receipts
+*.npz
+*.npy
+*.log
+*.xml
+revision_check/out/
+revision_check/runs/out/
+revision_check/claim_recovery_20260921/direct/
+revision_check/claim_recovery_20260921/controls/
+revision_check/claim_recovery_20260921/validation/
+revision_check/claim_recovery_20260921/*_preflight*/
+revision_check/claim_recovery_20260921/*.json
+revision_check/TEST_RESULTS.txt
+revision_check/DISCRIMINATION_TABLE.md

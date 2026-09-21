@@ -549,12 +549,20 @@ class Ferromagnet(Magnet):
 
     @temperature.setter
     def temperature(self, value):
-        if self.grid.ncells % 2:
-            raise ValueError("The CUDA random number generator used to generate"
-                             + " a random noise field only works for an even"
-                             + " number of grid cells.\n"
-                             + "The used number of grid cells is {}.".format(self.grid.ncells))
         self.temperature.set(value)
+
+    @property
+    def thermal_seed(self) -> int:
+        """CUDA thermal RNG seed. Set before integration to replay a trial.
+
+        Assignment resets the random stream to its beginning. This does not
+        restore a solver's already drawn noise or its integration history.
+        """
+        return self._impl.thermal_seed
+
+    @thermal_seed.setter
+    def thermal_seed(self, value):
+        self._impl.thermal_seed = int(value)
 
     @property
     def dmi_tensor(self) -> DmiTensor:

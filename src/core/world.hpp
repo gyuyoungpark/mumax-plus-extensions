@@ -37,7 +37,7 @@ class World {
   ~World();
 
   /** Return the current time of the World */
-  real time() const;
+  double time() const;
 
   /** Return the cell size dimensions. */
   real3 cellsize() const;

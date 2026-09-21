@@ -23,7 +23,7 @@ World::World(real3 cellsize)
 
 World::~World() {}
 
-real World::time() const {
+double World::time() const {
   return timesolver_->time();
 }
 

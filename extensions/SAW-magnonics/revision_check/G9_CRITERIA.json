@@ -1,0 +1,204 @@
+{
+  "schema": "saw_revision_check/g9_criteria/1",
+  "version": "2026-09-18-common-path",
+  "document_section_title": "PRE-REGISTRATION -- G9 idler-injection decision rule",
+  "status": "CORRECTION BEFORE ENGINE ANALYSIS. Synthetic calibration and validation are conditional estimator tests; no new GPU result.",
+  "single_source_note": "This file is the ONLY place a G9 threshold is declared. runs/_criteria.py reads it; the generated section of PREREGISTRATION.md is rendered from it; runs/G9_idler_injection.py contains no numeric tolerance of its own. A grep for a G9 tolerance must land here.",
+  "growth_rate_compatibility": {
+    "predicate": "P3",
+    "rule": "compatible <=> |Gamma_1 - Gamma_2| <= K_SIGMA * hypot(sigma_stat, sigma_sys) + tol_phys",
+    "no_or_clause": "There is deliberately no alternative relative-error clause. The previous TOL_REL = 0.10 OR-clause admitted a 9 % rate mismatch at z = 4.6e4 combined standard errors and is REMOVED, not retuned.",
+    "K_SIGMA": 3,
+    "K_SIGMA_justification": "Declared multiplier 3 for the operational error budget. Approximate overlap adjustment and empirical systematic calibration do not establish three-sigma coverage.",
+    "statistical_term": {
+      "symbol": "sigma_stat",
+      "formula": "sqrt(seg_len/stride) * hypot(se_1, se_2)",
+      "justification": "OLS errors of the GI-selected ln-amplitude slopes, multiplied by sqrt(seg_len/stride) as an approximate overlap adjustment. It does not determine residual autocorrelation or cross-member covariance and is not guaranteed coverage."
+    },
+    "systematic_term": {
+      "symbol": "sigma_sys",
+      "formula": "f_sys * max(|Gamma_1|, |Gamma_2|)",
+      "why_relative": "A scale-relative allowance calibrated for the stated synthetic family. Transfer to other rates, durations, amplitudes, frequency offsets, noise or grids is conditional."
+    },
+    "systematic_relative_floor": {
+      "symbol": "f_sys",
+      "value": 3.826173575940336e-9,
+      "statistic": "max sqrt(max(0,(relative_difference/K_SIGMA)^2-relative_statistical_error^2)) over eligible calibration records",
+      "n_controls": 130,
+      "script": "runs/measure_g9_systematic_floor.py",
+      "command": "python runs/measure_g9_systematic_floor.py --output runs/out/G9_common_path_validation_REPRO.json --write",
+      "measured_utc": "2026-09-18T05:47:04.982205+00:00",
+      "how_measured": "G9.pair_rates and G9.rate_comparison with shared GI fits; 130/166 calibration records eligible. Calibration seeds 7,11; independent validation seeds 101,103,107. Reduced nx=128; transfer to the campaign grid and physical noise is unvalidated.",
+      "justification": "Minimum additional scale needed to cover the finite calibration set. This construction neither isolates the true systematic variance nor establishes coverage outside that set.",
+      "evidence_file": "runs/out/G9_common_path_validation_v4.json",
+      "calibrated_K_SIGMA": 3,
+      "estimator_sha256": "9c00f851caf84b4a1e8e370c9ebb745c05f22d763b35d6ba648ce1be0664ff46",
+      "validation_counts": {
+        "calibration": {
+          "total": 166,
+          "compatible": 130,
+          "incompatible": 0,
+          "indeterminate": 36
+        },
+        "validation_equal": {
+          "total": 166,
+          "compatible": 127,
+          "incompatible": 3,
+          "indeterminate": 36
+        },
+        "validation_offgrid": {
+          "total": 2,
+          "compatible": 2,
+          "incompatible": 0,
+          "indeterminate": 0
+        },
+        "validation_unequal": {
+          "total": 2,
+          "compatible": 0,
+          "incompatible": 2,
+          "indeterminate": 0
+        }
+      }
+    },
+    "physical_tolerance": {
+      "symbol": "tol_phys",
+      "value": 0,
+      "formula": "0",
+      "scope": "linear common-eigenmode exponential growth on the same GI-valid early interval",
+      "justification": "Both components of a single eigenmode have the same exponential eigenvalue, hence zero allowed physical rate difference within this scope. ALPHA*abs(omega1-omega2) is a spread of free damping rates and is not a bound on transient logarithmic slopes of superposed modes. Transient or invalid fits cannot be classified by this equality test."
+    },
+    "indeterminate_policy": "Invalid fit scope, negative/non-finite uncertainty, malformed geometry or stale/unmeasured calibration makes P3 NOT_DETERMINABLE and G9 NOT_EVALUABLE, never evidence against pair generation.",
+    "interpretation": "Conditional compatibility under a common eigenmode and the declared synthetic envelope/noise family. sigma_stat is an approximate statistical uncertainty; sigma_sys is a synthetic-calibrated estimator allowance in standard-error units, not an independently identified variance. Their quadrature is an operational rule, not a measured confidence level or physical false-positive rate.",
+    "fit_applicability": {
+      "m_linear": 0.1,
+      "growth_seg_len": 64,
+      "layout_scope": "Fixed 64 samples independent of acquisition duration; at DT_REC=20 ps the support is 1.28 ns and bin spacing 781.25 MHz. This preserves early time resolution but does not certify material-specific frequency resolution. Coherence retains its previous max(64,nt//8) layout separately.",
+      "statement": "Both GI fits must be OK, use exactly the same interval, have no detected turnover, and agree with a centered independent OLS recomputation. These are necessary diagnostics, not proof of eigenmode dominance. Any failure is NOT_DETERMINABLE."
+    }
+  },
+  "predicates": {
+    "P1_partner_rise_dB": {
+      "value": 10,
+      "meaning": "power in the partner bin must rise by at least this many dB over its own value in the first tenth of the record"
+    },
+    "P1_over_nopump_dB": {
+      "value": 5,
+      "meaning": "the partner bin's late amplitude must also exceed the pump-off control's by at least this many dB"
+    },
+    "P2_resolution_floor_MHz": {
+      "value": 1,
+      "meaning": "floor on the frequency-sum tolerance, used when the growth-broadened record resolution is narrower than this"
+    },
+    "P4_null_percentile": {
+      "value": 99,
+      "meaning": "percentile of the pair-coherence surrogate distribution that C(k_1) must exceed"
+    },
+    "control_max_rise_dB": {
+      "value": 10,
+      "meaning": "a control's partner bin must rise by LESS than this, i.e. stay dark, for the nulls to hold"
+    }
+  },
+  "required_controls": {
+    "inj_res": {
+      "role": "the test itself: injection at the resonant grid mode",
+      "allow_diff": [],
+      "must_satisfy": [
+        {
+          "id": "res_pump_on",
+          "kind": "nonzero",
+          "field": "eps0",
+          "statement": "eps0 != 0",
+          "why": "a pump-off record cannot be the pumped test"
+        },
+        {
+          "id": "res_at_smallest_mismatch",
+          "kind": "argmin_of_recorded_table",
+          "field": "inject_bin",
+          "table": "selection.mismatch_Hz",
+          "statement": "inject_bin is the argmin over grid modes of the recorded pair mismatch |f(k)+f(q-k)-f_SAW|",
+          "why": "the run is only the resonant case if its injected bin is the one the MEASURED dispersion picks out; with no recorded mismatch table the claim cannot be certified and the analysis is NOT_EVALUABLE rather than assumed"
+        }
+      ],
+      "allow_condition_diff": []
+    },
+    "inj_res_nopump": {
+      "role": "pump-off control: the partner bin must not light up with eps_0 = 0",
+      "allow_diff": [
+        "eps0"
+      ],
+      "must_satisfy": [
+        {
+          "id": "pump_is_off",
+          "kind": "equals",
+          "field": "eps0",
+          "value": 0,
+          "statement": "eps0 == 0",
+          "why": "a control run at non-zero strain is not a pump-off control"
+        },
+        {
+          "id": "nopump_same_bin",
+          "kind": "equals_base",
+          "field": "inject_bin",
+          "statement": "inject_bin == inj_res.inject_bin",
+          "why": "the pump-off control must interrogate the SAME partner bin, or it does not bound that bin's background"
+        }
+      ],
+      "allow_condition_diff": [
+        "pump.eps_0"
+      ]
+    },
+    "inj_spec": {
+      "role": "spectator control: same injection amplitude at the LARGEST pair mismatch; its partner bin must stay dark",
+      "allow_diff": [
+        "inject_bin",
+        "inject_k",
+        "partner_bin",
+        "partner_k",
+        "initial_state"
+      ],
+      "must_satisfy": [
+        {
+          "id": "spectator_at_largest_mismatch",
+          "kind": "argmax_of_recorded_table",
+          "field": "inject_bin",
+          "table": "selection.mismatch_Hz",
+          "statement": "inject_bin is the argmax over grid modes of the recorded pair mismatch |f(k)+f(q-k)-f_SAW|",
+          "why": "REQUIRED_CONTROLS defines the spectator as the FARTHEST-off-resonance mode. Requiring only 'a different bin' let bin 2, adjacent to the resonant bin 3, serve as the null, so a generic response to injection could not be distinguished from a resonant one and the verdict still read DETECTED (counterexample A8)"
+        },
+        {
+          "id": "spectator_distinct",
+          "kind": "differs_from_base",
+          "field": "inject_bin",
+          "statement": "spectator and resonant injected bins differ",
+          "why": "a flat mismatch table does not furnish a distinct spectator"
+        }
+      ],
+      "allow_condition_diff": []
+    }
+  },
+  "null": {
+    "statement": "P4 uses a block-phase surrogate with one product phase per ceil(seg_len/stride) segments. This preserves phases within blocks only; samples also overlap across block boundaries, and physical correlation may extend farther. The threshold is a conditional surrogate level, not a calibrated physical false-positive rate.",
+    "p4_threshold_variant": "block_phase",
+    "rate_policy": "No false-positive rate is quoted from any variant. The threshold is reported as an exceedance LEVEL of a named phase surrogate, and the independent-phase level is kept only as a diagnostic showing how much the overlap matters.",
+    "variants_order": [
+      "independent_phase",
+      "block_phase"
+    ],
+    "variants": {
+      "independent_phase": {
+        "construction": "one independent uniform phase per segment applied to the PRODUCT m1*m2, measured magnitudes kept; distributionally identical to the historical SA.pair_correlator_null, where two independent uniform phases were drawn and their sum is again uniform per segment",
+        "quotable_as": "a reference level ignoring overlap, used only as a diagnostic"
+      },
+      "block_phase": {
+        "construction": "one independent product phase per block of ceil(seg_len/stride) segments, with measured magnitudes retained; partial treatment of overlap, not the full covariance",
+        "quotable_as": "a conditional block-phase surrogate exceedance level; neither physical null coverage nor uniformly greater conservatism is guaranteed"
+      }
+    },
+    "what_is_randomised": "Product phase; measured product magnitudes are retained. No physical error rate is inferred."
+  },
+  "record_policy": "Validate all required records before spectra or predicates: scalar boolean done, finite 2D samples, complete counters, declared and stamped conditions matching each other and the analysis geometry, and recorded role requirements. Missing, incomplete, ambiguous, malformed or mismatched inputs yield NOT_EVALUABLE and a summary. No unstamped legacy record is certified.",
+  "selection_policy": {
+    "tie_break": "smallest_bin",
+    "statement": "A complete finite nonnegative table over every non-degenerate grid bin is required. Ties use the smallest bin, matching choose_k1; reciprocal j and N-j necessarily have equal pair mismatch. A flat table cannot define distinct resonant and spectator cases."
+  }
+}
