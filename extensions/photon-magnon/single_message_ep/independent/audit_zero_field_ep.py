@@ -4,6 +4,9 @@ No primary EP solver or frozen energy-model module is imported. Rates and
 eigenvalues are angular quantities divided by 2*pi*GHz; physical gamma is SI.
 Only files adjacent to this script are written.
 """
+
+if __name__ != '__main__':
+    raise RuntimeError('Script entry point; use run_cpu.py zero-field.')
 from pathlib import Path
 import json
 import hashlib
@@ -232,13 +235,20 @@ def summarize(rows):
 
 primary=[solve_one(r,GAMMA,OMEGA,KAPPA) for r in GRID]
 for row in primary:
-    assert row['status']=='certified_complex_EP2'
-    assert row['energy_bound_ratio'] < 1 and row['K_min_eigen'] > 0
-    assert row['normalized_nonzero_5x5_minor'] > mp.mpf('1e-8')
-    assert row['normalized_ddP'] > 1 and row['min_dark_pole_distance'] > 0
-    assert row['max_full_pole_real'] < 0
-    assert row['eigenvector_residual'] < mp.mpf('1e-65')
-    assert row['generalized_eigenvector_residual'] < mp.mpf('1e-65')
+    if not (row['status']=='certified_complex_EP2'):
+        raise AssertionError()
+    if not (row['energy_bound_ratio'] < 1 and row['K_min_eigen'] > 0):
+        raise AssertionError()
+    if not (row['normalized_nonzero_5x5_minor'] > mp.mpf('1e-8')):
+        raise AssertionError()
+    if not (row['normalized_ddP'] > 1 and row['min_dark_pole_distance'] > 0):
+        raise AssertionError()
+    if not (row['max_full_pole_real'] < 0):
+        raise AssertionError()
+    if not (row['eigenvector_residual'] < mp.mpf('1e-65')):
+        raise AssertionError()
+    if not (row['generalized_eigenvector_residual'] < mp.mpf('1e-65')):
+        raise AssertionError()
 regular=[]
 for ss in ('1','.3','.1','.03','.01','.003','.001','0'):
     scale=mp.mpf(ss)
@@ -258,20 +268,32 @@ matched=solve_one(R0,KAPPA,OMEGA,KAPPA)
 all_rows=primary+[row for family in (regular,cavity,joint)
                   for item in family for row in item['rows']]+[matched]
 for row in all_rows:
-    assert row['fixed_pole_error'] < mp.mpf('1e-65')
-    assert row['exact_two_coordinate_similarity_error'] < mp.mpf('1e-65')
+    if not (row['fixed_pole_error'] < mp.mpf('1e-65')):
+        raise AssertionError()
+    if not (row['exact_two_coordinate_similarity_error'] < mp.mpf('1e-65')):
+        raise AssertionError()
     if row['status']=='excluded_semisimple_zero_coupling':
-        assert row['G']==0
-        assert row['diagonalizable_minimal_polynomial_residual'] < mp.mpf('1e-65')
+        if not (row['G']==0):
+            raise AssertionError()
+        if not (row['diagonalizable_minimal_polynomial_residual'] < mp.mpf('1e-65')):
+            raise AssertionError()
         continue
-    assert row['status']=='certified_complex_EP2'
-    assert row['G'] > 0 and row['nu2'] > 0
-    assert row['K_min_eigen'] > 0 and row['R_min_diagonal'] >= 0
-    assert row['min_dark_pole_distance'] > 0
-    assert row['normalized_P'] < mp.mpf('1e-65')
-    assert row['normalized_dP'] < mp.mpf('1e-65')
-    assert row['max_independent_matrix_factorization_error'] < mp.mpf('1e-65')
-    assert row['passivity_identity_error'] < mp.mpf('1e-65')
+    if not (row['status']=='certified_complex_EP2'):
+        raise AssertionError()
+    if not (row['G'] > 0 and row['nu2'] > 0):
+        raise AssertionError()
+    if not (row['K_min_eigen'] > 0 and row['R_min_diagonal'] >= 0):
+        raise AssertionError()
+    if not (row['min_dark_pole_distance'] > 0):
+        raise AssertionError()
+    if not (row['normalized_P'] < mp.mpf('1e-65')):
+        raise AssertionError()
+    if not (row['normalized_dP'] < mp.mpf('1e-65')):
+        raise AssertionError()
+    if not (row['max_independent_matrix_factorization_error'] < mp.mpf('1e-65')):
+        raise AssertionError()
+    if not (row['passivity_identity_error'] < mp.mpf('1e-65')):
+        raise AssertionError()
 result=dict(
     scope='Independent B=0 exact bright-quartic calculation; no active manuscript changes, no GPU or device validation.',
     formulation='80-digit perfect-square coefficient matching, independently constructed canonical 6D matrix, minor/rank/Jordan certificates',

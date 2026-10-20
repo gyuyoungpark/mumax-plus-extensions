@@ -3,6 +3,9 @@
 Reads only the public measured-coefficient export and physical operating inputs.
 No material fields, alpha, squeezing ratio or coupled matrices are available here.
 """
+
+if __name__ != '__main__':
+    raise RuntimeError('Script entry point; use run_cpu.py demo or predict.')
 from pathlib import Path
 from datetime import datetime,timezone
 import hashlib,json
@@ -42,7 +45,8 @@ def response(gam,om,aa,bb,kap,wc,bstar):
     return ans
 
 rows=[]
-assert sorted(c['case_id'] for c in cals['cases'])==['A','B','C']
+if not (sorted(c['case_id'] for c in cals['cases'])==['A','B','C']):
+    raise AssertionError()
 for c in sorted(cals['cases'],key=lambda c:c['case_id']):
     gam,om,aa,bb=[M(str(c[k])) for k in ['Gamma_bar','Omega_bar','A_tilde_per_T','B_tilde_per_T']]
     for kapstr in spec['kappa_GHz']:
@@ -66,7 +70,8 @@ out={'scope':spec['scope'],'frozen_utc':datetime.now(timezone.utc).isoformat(),
  'rows':rows,'common_G_responses':common,'rho_ref_bar':dec(rho_ref),
  'note':'EP prediction uses only fitted physical susceptibility and physical B_star; no conversion through truth r. The separately prescribed common-G field settings use nominal energy normalization, as disclosed in settings provenance.'}
 outpath=W/'predictions_frozen.json'
-assert not outpath.exists(),'Preserve frozen predictions; start another explicitly named run if free calibration changes.'
+if not (not outpath.exists()):
+    raise AssertionError('Preserve frozen predictions; start another explicitly named run if free calibration changes.')
 outpath.write_text(json.dumps(out,indent=2),encoding='utf-8')
 (W/'predictions_frozen.sha256').write_text(sha(outpath)+'  predictions_frozen.json\n',encoding='ascii')
 print(json.dumps({'frozen_sha256':sha(outpath),'predicted_EP_conditions':len(rows),'common_G_cases':len(common)}))

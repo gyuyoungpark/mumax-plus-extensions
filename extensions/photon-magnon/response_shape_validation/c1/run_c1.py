@@ -4,6 +4,9 @@ Reuse the 37 stored full-EP coordinates and the old response window; add the
 strength-matched reference and one representative r=.126. No GPU or new bath.
 All outputs stay next to this script.
 """
+
+if __name__ != '__main__':
+    raise RuntimeError('Script entry point; use run_cpu.py zero-field.')
 from pathlib import Path
 import hashlib
 import json
@@ -89,11 +92,13 @@ def passivity(m,G,wc,high=False):
     out=dict(energy_min_eigenvalue=kmin,dissipation_min_eigenvalue=rmin,
              max_generator_eigenvalue_real_part=maxre,
              dimensionless_energy_ratio=8*G*G/(m['wm']*wc))
-    assert kmin>0 and rmin>=0 and maxre<0
+    if not (kmin>0 and rmin>=0 and maxre<0):
+        raise AssertionError()
     if high:
         residual=norm(A.T*K+K*A+2*K*R*K)/(norm(A)*norm(K))
         out['high_precision_Lyapunov_relative_error']=residual
-        assert residual<M('1e-70')
+        if not (residual<M('1e-70')):
+            raise AssertionError()
     return out
 
 def response_formula(a,b,G,wc,z=Z):
@@ -124,8 +129,10 @@ for old in OLD['rows']:
              b=m['b'],rho=m['rho'],scalar_errors=ep_errors(scalar,oldep),
              scalar_passivity_at_own_EP=passivity(REF,physical_gref,scalar['wc']),
              scalar_passivity_at_common_target_G=passivity(REF,GCOMMON*mp.sqrt(m['b']/REF['b']),WCOMMON))
-    assert abs(physical_gref-REF_EP['G'])<M('1e-70')
-    assert abs(scalar['wc']-REF_EP['wc'])<M('1e-70')
+    if not (abs(physical_gref-REF_EP['G'])<M('1e-70')):
+        raise AssertionError()
+    if not (abs(scalar['wc']-REF_EP['wc'])<M('1e-70')):
+        raise AssertionError()
     grid.append(row)
 
 arrays={'frequency_GHz':FREQ}
@@ -139,8 +146,10 @@ for r in REPS:
     # This formula agreement is explicitly a check of the reused EP record,
     # not another numerical search or an independent empirical estimate.
     exact_ep_error=ep_errors(exact_ep,full_ep)
-    assert abs(exact_ep_error['cavity_frequency_error_MHz'])<M('1e-55')
-    assert abs(exact_ep_error['target_equivalent_coupling_error_kHz'])<M('1e-55')
+    if not (abs(exact_ep_error['cavity_frequency_error_MHz'])<M('1e-55')):
+        raise AssertionError()
+    if not (abs(exact_ep_error['target_equivalent_coupling_error_kHz'])<M('1e-55')):
+        raise AssertionError()
     Gref=GCOMMON*mp.sqrt(m['b']/REF['b'])
     A,K,R,J=raw6(m,GCOMMON,WCOMMON)
     Aref,_,_,_=raw6(REF,Gref,WCOMMON)
@@ -195,10 +204,14 @@ for r in REPS:
                           dP_abs_over_Omega5=abs(mp.diff(p6,ep_pole))/OMG**5,
                           ddP_abs_over_Omega4=abs(mp.diff(p6,ep_pole,2))/OMG**4,
                           smallest_singular_value=sv[5],second_smallest_singular_value=sv[4])
-    assert full_certificate['P_abs_over_Omega6']<M('1e-65')
-    assert full_certificate['dP_abs_over_Omega5']<M('1e-65')
-    assert full_certificate['ddP_abs_over_Omega4']>M('1e-8')
-    assert sv[5]<M('1e-65') and sv[4]>M('1e-5')
+    if not (full_certificate['P_abs_over_Omega6']<M('1e-65')):
+        raise AssertionError()
+    if not (full_certificate['dP_abs_over_Omega5']<M('1e-65')):
+        raise AssertionError()
+    if not (full_certificate['ddP_abs_over_Omega4']>M('1e-8')):
+        raise AssertionError()
+    if not (sv[5]<M('1e-65') and sv[4]>M('1e-5')):
+        raise AssertionError()
     rec=dict(r=r,a=m['a'],b=m['b'],rho=m['rho'],
       strength_numerator_a=REF['rho']*m['b'],full_ep=full_ep,
       full_ep_source='reused 37-point JSON' if oldrow else 'one added representative point, analytic quartic',
@@ -225,12 +238,19 @@ for r in REPS:
       full_passivity_at_common_point=passivity(m,GCOMMON,WCOMMON,True),
       strength_passivity_at_common_point=passivity(REF,Gref,WCOMMON,True),
       strength_passivity_at_own_EP=passivity(REF,scalar_ep['G']*mp.sqrt(m['b']/REF['b']),scalar_ep['wc'],True))
-    assert rec['exact2_response_max_abs_error']<1e-11
-    assert rec['strength_raw_vs_analytic_response_error']<1e-11
-    assert max(rec['high_precision_comparisons'].values())<M('1e-65')
-    assert two_certificate['P_abs_over_Omega4']<M('1e-65')
-    assert two_certificate['dP_abs_over_Omega3']<M('1e-65')
-    if r!=RREF: assert rec['strength_response_max_abs_error']>1e-7
+    if not (rec['exact2_response_max_abs_error']<1e-11):
+        raise AssertionError()
+    if not (rec['strength_raw_vs_analytic_response_error']<1e-11):
+        raise AssertionError()
+    if not (max(rec['high_precision_comparisons'].values())<M('1e-65')):
+        raise AssertionError()
+    if not (two_certificate['P_abs_over_Omega4']<M('1e-65')):
+        raise AssertionError()
+    if not (two_certificate['dP_abs_over_Omega3']<M('1e-65')):
+        raise AssertionError()
+    if r!=RREF:
+        if not (rec['strength_response_max_abs_error']>1e-7):
+            raise AssertionError()
     records.append(rec)
 
 # Record the tiny difference between the chosen 9-digit reference and the

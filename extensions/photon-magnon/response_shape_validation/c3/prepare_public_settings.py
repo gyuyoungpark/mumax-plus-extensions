@@ -1,4 +1,7 @@
 """Declare physical inputs before predictions; no coupled result is read."""
+
+if __name__ != '__main__':
+    raise RuntimeError('Script entry point; use run_cpu.py demo or predict.')
 from pathlib import Path
 import json,math,hashlib
 W=Path(__file__).resolve().parent

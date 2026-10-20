@@ -108,11 +108,16 @@ def ep(r,gamma=GAM,kappa=KAP):
       free_spin_pole_match_error_Hz=float(np.max(abs(free[ii]-target[jj]))*1e9),
       lyapunov_identity_relative_residual=float(np.linalg.norm(Af.T@Kf+Kf@Af+2*Kf@Rf@Kf)/np.linalg.norm(Kf@Af)),
       energy_positive_coupling_ratio=float(8*g*g/(w*m['wm'])))
-    assert g>0 and w>0 and c>(gamma+kappa)**2/4
-    assert float(row['normalized_p'])<1e-55 and float(row['normalized_dp'])<1e-55
-    assert float(row['normalized_ddp'])>1e-8 and float(row['dark_factor_at_ep_normalized'])>1e-8
-    assert row['min_energy_eigenvalue_GHz']>0 and row['energy_positive_coupling_ratio']<1
-    assert matcherr<1e-8 and row['jordan_chain_residual']<1e-8 and sv[-2]>.01
+    if not (g>0 and w>0 and c>(gamma+kappa)**2/4):
+        raise AssertionError()
+    if not (float(row['normalized_p'])<1e-55 and float(row['normalized_dp'])<1e-55):
+        raise AssertionError()
+    if not (float(row['normalized_ddp'])>1e-8 and float(row['dark_factor_at_ep_normalized'])>1e-8):
+        raise AssertionError()
+    if not (row['min_energy_eigenvalue_GHz']>0 and row['energy_positive_coupling_ratio']<1):
+        raise AssertionError()
+    if not (matcherr<1e-8 and row['jordan_chain_residual']<1e-8 and sv[-2]>.01):
+        raise AssertionError()
     return row
 
 def response_test(rows):
@@ -131,7 +136,8 @@ def response_test(rows):
             checks.append(abs(series[index]-(-2*.5*k*rr[5,5])))
         curves[str(float(r))]=series
         records.append({'r':float(r),'direct_resolvent_max_abs_difference':max(checks)})
-        assert max(checks)<1e-11
+        if not (max(checks)<1e-11):
+            raise AssertionError()
     refS=curves[str(float(R0))]
     for rec in records:
         cur=curves[str(rec['r'])]

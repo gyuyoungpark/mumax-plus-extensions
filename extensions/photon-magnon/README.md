@@ -1,5 +1,12 @@
 # Energy-consistent AFM cavity examples
 
+The [physics and validation status](VALIDATION.md) distinguishes source review,
+software checks, the limited CPU FM pilot, and outstanding native/GPU work.
+The new [energy-coordinate methods package](methods/README.md) provides explicit
+normalization, a uniform callback adapter and signed raw-trace analysis. It is
+separate from the native AFM engine and the C1--C4 examples below. No general
+dissipative or arbitrary-phase coupling model is validated by these additions.
+
 This source-only package implements the declared zero-bias, uniform-Zeeman,
 native-Gilbert model with a viscous cavity bath. Both interaction directions
 derive from the same energy. It tests how the magnetic response numerator
@@ -54,6 +61,12 @@ uses the integrated physical coupling API. From the repository root:
 ```sh
 python examples/afm_cavity_ringdown.py --mumaxplus-fp-precision DOUBLE
 ```
+
+The native model requires equal, positive, static and spatially uniform Ms on
+both sublattices. Set valid positive frequencies/normalization and nonnegative
+losses before enabling it. Enabling or disabling the primary/auxiliary now
+updates the time-solver equations. The new guards have host-only checks; a
+fresh linked native build and physical regression remain outstanding.
 
 ## Fast CPU identity demonstration
 
@@ -132,6 +145,13 @@ BLAS/CUDA platform should be assessed by physical tolerances and convergence;
 byte-for-byte output equality is not promised. The code uses the repository's
 license. No legacy empirical normalization or phase-only cavity model is used
 by these entry points.
+
+The October 21 source audit adds input-admission and activation safeguards.
+The [source map](source_map.json) retains earlier identities and records the
+updated source separately. Historical numerical acceptance is not automatically
+transferred to a changed source. C1/C3 and the independent EP audit are script
+entry points; use the documented `run_cpu.py` commands rather than importing
+them as a library.
 
 ## Portability checks
 

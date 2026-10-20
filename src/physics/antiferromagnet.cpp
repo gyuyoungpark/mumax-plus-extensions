@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "fieldquantity.hpp"
+#include "cavityconfig.hpp"
 #include "gpubuffer.hpp"
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
@@ -54,12 +55,65 @@ std::shared_ptr<const System> Antiferromagnet::auxAmplitudeSystem() const {
   return auxAmplitude_.system();
 }
 
+void Antiferromagnet::validateCavityConfiguration(bool enabled, bool auxiliary) const {
+  if (!enabled) return;
+  // A plain sum of volume averages is reciprocal only for equal, uniform,
+  // static moments. Do not silently apply it to ferrimagnets or varying Ms.
+  if (sub1_.msat.isDynamic() || sub2_.msat.isDynamic() ||
+      !sub1_.msat.isUniform() || !sub2_.msat.isUniform())
+    throw std::invalid_argument(
+        "Native uniform cavity requires static spatially uniform Ms on both sublattices");
+  cavity::validate(
+      {cavityOmega, cavityKappa, cavityH0, cavityEnergyField,
+       cavityDriveRe, cavityDriveIm, auxiliary,
+       auxOmega, auxKappa, auxH0, auxJ},
+      sub1_.msat.getUniformValue(), sub2_.msat.getUniformValue(),
+      system()->cellsInGeo());
+}
+
+void Antiferromagnet::validateCavityConfiguration() const {
+  validateCavityConfiguration(enableCavityAfm_, enableAuxMode_);
+}
+
+void Antiferromagnet::setEnableCavityAfm(bool enabled) {
+  validateCavityConfiguration(enabled, enableAuxMode_);
+  if (enabled == enableCavityAfm_) return;
+  const bool previous = enableCavityAfm_;
+  enableCavityAfm_ = enabled;
+  try {
+    mumaxWorld()->resetTimeSolverEquations();
+  } catch (...) {
+    enableCavityAfm_ = previous;
+    // setEquations preserves the old equations and dt if RHS admission fails.
+    throw;
+  }
+}
+
+void Antiferromagnet::setEnableAuxMode(bool enabled) {
+  // Auxiliary settings may be staged while the primary cavity is disabled.
+  // They become active and are validated when the primary is enabled.
+  validateCavityConfiguration(enableCavityAfm_, enabled);
+  if (enabled == enableAuxMode_) return;
+  const bool previous = enableAuxMode_;
+  enableAuxMode_ = enabled;
+  try {
+    mumaxWorld()->resetTimeSolverEquations();
+  } catch (...) {
+    enableAuxMode_ = previous;
+    throw;
+  }
+}
+
 void Antiferromagnet::minimize(real tol, int nSamples) {
+  if (enableCavityAfm_)
+    throw std::invalid_argument("Disable the cavity before spin-only minimize()");
   Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
 }
 
 void Antiferromagnet::relax(real tol) {
+  if (enableCavityAfm_)
+    throw std::invalid_argument("Disable the cavity before spin-only relax()");
   std::vector<real> threshold = {sub1()->RelaxTorqueThreshold,
                                  sub2()->RelaxTorqueThreshold};
     // If only one sublattice has a user-set threshold, then both

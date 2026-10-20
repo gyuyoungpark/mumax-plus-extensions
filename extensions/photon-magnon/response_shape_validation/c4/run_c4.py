@@ -99,8 +99,10 @@ def full6_response(truth, point, z, settings):
     checks={'energy_min_eigenvalue':float(np.linalg.eigvalsh(K).min()),
             'max_generator_real_eigenvalue':float(np.linalg.eigvals(A).real.max()),
             'relative_Lyapunov_error':float(np.linalg.norm(A.T@K+K@A+2*K@R@K)/(np.linalg.norm(A)*np.linalg.norm(K)))}
-    assert checks['energy_min_eigenvalue']>0
-    assert checks['max_generator_real_eigenvalue']<0
+    if not (checks['energy_min_eigenvalue']>0):
+        raise AssertionError()
+    if not (checks['max_generator_real_eigenvalue']<0):
+        raise AssertionError()
     return response,checks
 
 
@@ -142,7 +144,8 @@ def derivative_check(center,z,factor,eta):
         p=center.copy();m=center.copy();p[k]+=h;m[k]-=h
         fd=(scalar_response(p,z,factor,eta)-scalar_response(m,z,factor,eta))/(2*h)
         errors.append(float(np.max(abs(fd-j[:,k]))/max(np.max(abs(j[:,k])),1e-30)))
-    assert max(errors)<2e-6,errors
+    if not (max(errors)<2e-6):
+        raise AssertionError(errors)
     return errors
 
 
@@ -218,7 +221,8 @@ def propagate_envelope(c,kap,point,z,full,settings,truth,shape_effect=None):
     with mp.workdps(65):
         for signs in itertools.product([-1,1],repeat=4):
             v=[mp.nstr(mp.mpf(str(a))+s*mp.mpf(str(b)),55) for a,b,s in zip(center,widths,signs)]
-            assert all(mp.mpf(t)>0 for t in v)
+            if not (all(mp.mpf(t)>0 for t in v)):
+                raise AssertionError()
             ep=physical_ep(v,kap,settings)
             bdiff=float(abs(mp.mpf(ep[0])-mp.mpf(center_ep[0])))
             fdiff=float(abs(mp.mpf(ep[1])-mp.mpf(center_ep[1]))*1000)
@@ -244,7 +248,8 @@ def propagate_envelope(c,kap,point,z,full,settings,truth,shape_effect=None):
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--final-inputs-confirmed',action='store_true')
     args=parser.parse_args()
-    assert args.final_inputs_confirmed,'Use --final-inputs-confirmed only after freezing C2 and validating C3.'
+    if not (args.final_inputs_confirmed):
+        raise AssertionError('Use --final-inputs-confirmed only after freezing C2 and validating C3.')
     if not (HERE/'protocol.json').exists():
         (HERE/'protocol.json').write_text(json.dumps({'scope':'Numerical envelope and nuisance diagnostics; not experimental identifiability.', 'error_over_effect_limit':PREDECLARED_RATIO},indent=2)+'\n',encoding='utf-8')
     files={'calibration':BASE/'c3/calibration_public_frozen.json',
@@ -254,8 +259,10 @@ def main():
     data={k:json.loads(p.read_text(encoding='utf-8')) for k,p in files.items()}
     cal=data['calibration'];settings=data['settings'];validation=data['validation']
     predictions=data['predictions']; truths=data['material_truth']['cases']
-    assert predictions['read_files'][files['calibration'].name]==sha(files['calibration'])
-    assert predictions['read_files'][files['settings'].name]==sha(files['settings'])
+    if not (predictions['read_files'][files['calibration'].name]==sha(files['calibration'])):
+        raise AssertionError()
+    if not (predictions['read_files'][files['settings'].name]==sha(files['settings'])):
+        raise AssertionError()
     cases={c['case_id']:c for c in cal['cases']}
     ft=data['free_truth'];free_cases=ft.get('cases',ft)
     if isinstance(free_cases,list):free_cases={r['case_id']:r for r in free_cases}
@@ -274,7 +281,8 @@ def main():
                          point['kappa_GHz'],point['wc_GHz'],point['B_star_T']],float)
         envelope=c['numerical_variation_envelope'];refenv=ref['numerical_variation_envelope']
         widths=np.array([envelope['Gamma_bar'],envelope['Omega_bar'],envelope['B_tilde_per_T'],refenv['rho_s']*U])
-        assert np.all(widths>0),'Final independent envelope must supply all four nonzero widths.'
+        if not (np.all(widths>0)):
+            raise AssertionError('Final independent envelope must supply all four nonzero widths.')
         full,fullchecks=full6_response(truths[cid],point,z,settings)
         scalar=scalar_response(center,z,factor,eta)
         shapepars=center.copy();shapepars[3]=c['A_tilde_per_T']/c['B_tilde_per_T']
@@ -289,8 +297,10 @@ def main():
                        float(free_cases[cid]['B_tilde_per_T']),true_rho_ref]
         truth_scalar_metric=metrics(scalar_response(truthpars,z,factor,eta),full)
         prior=next(v for v in validation['common_G_response'] if v['case_id']==cid)['response']
-        assert abs(shape_metric['epsilon_S_max']-prior['shape_normalized'])<1e-10
-        assert abs(baseline['epsilon_S_max']-prior['scalar_normalized'])<1e-10
+        if not (abs(shape_metric['epsilon_S_max']-prior['shape_normalized'])<1e-10):
+            raise AssertionError()
+        if not (abs(baseline['epsilon_S_max']-prior['scalar_normalized'])<1e-10):
+            raise AssertionError()
         row={'case_id':cid,'role':'reference calibration control' if cid=='A' else 'representative local pair B versus A reference shape',
              'operating_point':point,'G_U_GHz_reporting_only':gu,
              'parameter_order':['Gamma_bar','Omega_bar','B_tilde_per_T','rho_ref_bar','kappa_GHz','wc_GHz','Bstar_T'],
@@ -413,7 +423,8 @@ def main():
     report(out)
     manuscript_values(out)
     # Verify the prediction inputs remained bit-identical across this diagnostic run.
-    assert all(sha(p)==out['input_sha256'][k] for k,p in files.items())
+    if not (all(sha(p)==out['input_sha256'][k] for k,p in files.items())):
+        raise AssertionError()
     print(json.dumps({'pair':[{r['case_id']:r['bounded_scalar_fit']['metrics']['epsilon_S_max']} for r in results],
                       'rho_variation_gate':out['local_rho_variation_gate'],'output':str(HERE/'results.json')}))
 

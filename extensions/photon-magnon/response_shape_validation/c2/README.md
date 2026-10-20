@@ -54,7 +54,45 @@ variant name was already generated. The finer optional `precision6` group also
 generates 6.25 fs pulse and half-drive records. `--case A` and `--only free` or
 `pulse` allow the campaign to be scheduled in pieces.
 
-`public/` contains only time, physical spins, `Mx=mAx+mBx`, the known field and
+## Observed clocks and record admission
+
+New records use `c2-observed-clock-v1`. `t_s` is read from
+`world.timesolver.time` at each stored magnetic state. The declared schedule
+is saved separately as `planned_t_s`; it is never substituted for observed
+time. The stored time array's actual dtype, integration step, sample interval,
+planned start and sample count are recorded in the public metadata. The known
+pulse field is evaluated at the observed times. No interpolation is performed.
+
+The prospective absolute tolerances are `1e-24` s for local uniform spacing
+(the existing fitter's time-window slack) and `1e-21` s for accumulated
+observed-versus-planned schedule deviation. A nonfinite, nonincreasing or
+out-of-tolerance clock is refused. These are source-level sampling guards,
+not newly measured solver accuracy. The cases, integration steps, record
+counts and refinement choices above are unchanged. This source update has
+not generated new GPU records or rerun the scientific fits.
+
+The pure standard-library `record_schema.py` checks the five exact array keys
+`t_s,planned_t_s,m6,Mx,B_T`, finite real values, state shape `(samples,6)`,
+matching vector lengths, explicit seconds/tesla and sublattice conventions,
+and exact `Mx=mAx+mBx` from the stored states. It is shared by the generator,
+public-only fitter and freezer, without importing model truth or scientific
+libraries. Keep this helper beside the scripts when making an isolated
+source copy. Its hash and source snapshot are retained; the fitter binds the
+helper hash, and freezing rechecks the held observations and their schemas.
+
+Older planned-only observations are preserved and refused by this new schema;
+use a new output root. No historical time axis is retroactively labeled as an
+observed solver clock. Existing complete records are skipped only after the
+new protocol, source/runtime and raw identities agree; partial raw outputs are
+not overwritten.
+
+The generation loop resumes only between completed records. `progress.json`
+is a progress report, not a complete spin/cavity/solver checkpoint. An
+interrupted trajectory cannot resume its full state here; a partial record
+requires a new output root. The separate newer method package's checkpoint
+contract must not be inferred for this historical C2 runner.
+
+`public/` contains observed and planned time, physical spins, `Mx=mAx+mBx`, the known field and
 waveform metadata. `private/` contains the generated model setup for later
 validation. The public fitter reads only `public/`; no exchange, anisotropy,
 damping parameter, squeezing ratio, analytic numerator, or coupled spectrum is

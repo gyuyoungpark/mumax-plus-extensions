@@ -7,9 +7,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 import argparse
 import hashlib
+import io
 import json
 
 import numpy as np
+from record_schema import SCHEMA_SOURCE_SHA256, validate_record_schema
 
 
 def sha(path):
@@ -29,11 +31,19 @@ def main():
     here = args.output.resolve() / "response_shape_validation" / "c2"
     fitter = Path(__file__).with_name("fit_public.py")
     public_path = here / "fit" / "calibration_public.json"
-    data = json.loads(public_path.read_text(encoding="utf-8"))
+    public_payload = public_path.read_bytes()
+    data = json.loads(public_payload.decode("utf-8"))
+    require(isinstance(data.get("cases"), list) and data["cases"], "Calibration cases must be a nonempty list.")
+    case_ids = [case["case_id"] for case in data["cases"]]
+    require(len(case_ids) == len(set(case_ids)), "Duplicate calibration case identifiers are not allowed.")
     cases = {c["case_id"]: c for c in data["cases"]}
+    require(isinstance(data.get("public_read_manifest"), list) and data["public_read_manifest"],
+            "Calibration needs a nonempty public observation read manifest.")
     require(data.get("final_records_required") is True, "Partial development fits cannot be frozen.")
     require(set(cases) == set("ABC"), "The final calibration requires all three cases.")
     require(data["analyzer_sha256"] == sha(fitter), "Fitter source changed since calibration; refit first.")
+    require(data.get("record_schema_source_sha256") == SCHEMA_SOURCE_SHA256,
+            "Raw-schema validator source changed since calibration; refit first.")
     for cid in ("A", "B"):
         case = cases[cid]
         require(case["chosen_pole_variant"] == "eighthseedhalf", f"Missing final half-seed pole fit for {cid}.")
@@ -42,23 +52,47 @@ def main():
     require(cases["C"]["chosen_pole_variant"] == cases["C"]["chosen_variant"] == "quarterstep", "Missing final fine pair for C.")
     require(data.get("local_shape_resolution", {}).get("pass") is True, "Public-data rho variation target failed.")
     public_dir = here / "public"
+    manifest_expected = {}
     # Recheck every observation actually used. No private directory is opened
     # until the frozen result and its digest have been written below.
     for record in data["public_read_manifest"]:
+        if record["path"] in manifest_expected:
+            require(manifest_expected[record["path"]] == record["sha256"], "Conflicting observation hashes in read manifest.")
+        manifest_expected[record["path"]] = record["sha256"]
         path = (public_dir / record["path"]).resolve()
         require(path.is_relative_to(public_dir.resolve()), "Public read manifest escapes its directory.")
         require(sha(path) == record["sha256"], "Public observation changed after fitting.")
+    # Re-admit every actual raw schema before publishing frozen calibration.
+    # No private model inputs, fit, spectrum or physical prediction is used.
+    metadata_names = sorted({r["path"] for r in data["public_read_manifest"] if r["path"].endswith(".json")})
+    require(bool(metadata_names), "Public read manifest must include metadata for raw-schema admission.")
+    schema_checks = []
+    for name in metadata_names:
+        meta_path = (public_dir / name).resolve()
+        meta_payload = meta_path.read_bytes()
+        require(hashlib.sha256(meta_payload).hexdigest() == manifest_expected[name], "Metadata changed before schema validation.")
+        meta = json.loads(meta_payload.decode("utf-8"))
+        require(meta.get("raw_file") == meta_path.stem + ".npz", "Raw filename differs from its public metadata identity.")
+        raw_path = (public_dir / meta["raw_file"]).resolve()
+        require(raw_path.is_relative_to(public_dir.resolve()), "Raw record escapes public directory.")
+        payload = raw_path.read_bytes()
+        raw_label = raw_path.relative_to(public_dir.resolve()).as_posix()
+        require(hashlib.sha256(payload).hexdigest() == meta["raw_sha256"] == manifest_expected.get(raw_label),
+                "Raw bytes changed or are absent from the fitter read manifest.")
+        with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
+            raw = {key: archive[key] for key in archive.files}
+        schema_checks.append({"record": name, **validate_record_schema(meta, raw, name=meta_path.stem)})
     frozen_path = here / "calibration_frozen.json"
     provenance_path = here / "calibration_frozen_provenance.json"
     if args.resume_validation:
         freeze = json.loads(provenance_path.read_text(encoding="utf-8"))
         frozen_hash = sha(frozen_path)
-        require(frozen_hash == freeze["sha256"] == sha(public_path), "Frozen calibration no longer matches its source or provenance.")
+        require(frozen_hash == freeze["sha256"] == hashlib.sha256(public_payload).hexdigest(), "Frozen calibration no longer matches its source or provenance.")
         require(freeze["fitter_source_sha256"] == sha(fitter), "Fitter source changed after freezing.")
     else:
         require(not frozen_path.exists(), "Refuse to overwrite frozen calibration; use --resume-validation.")
         with frozen_path.open("xb") as handle:
-            handle.write(public_path.read_bytes())
+            handle.write(public_payload)
         frozen_hash = sha(frozen_path)
         freeze = {"frozen_utc": datetime.now(timezone.utc).isoformat(), "file": frozen_path.name,
                   "sha256": frozen_hash, "fitter_source_sha256": sha(fitter),
@@ -89,7 +123,6 @@ def main():
                          key: bool(errors[key] <= fit["numerical_variation_envelope"][key]) for key in expected},
                      "rho_error_target_pass": bool(errors["rho_s"] < .1 * data["local_shape_resolution"]["delta_rho_s"])})
     records = []
-    metadata_names = sorted({r["path"] for r in data["public_read_manifest"] if r["path"].endswith(".json")})
     for name in metadata_names:
         meta_path = public_dir / name
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -101,16 +134,21 @@ def main():
         runtime_path = here / "runtime" / f"{private_meta['runtime_id']}.json"
         runtime = json.loads(runtime_path.read_text(encoding="utf-8"))
         require(sha(source) == private_meta["source_sha256"] == runtime["source_sha256"], "Executed source snapshot mismatch.")
+        schema_source = here / "source_versions" / f"record_schema_{private_meta['record_schema_source_sha256']}.py"
+        require(sha(schema_source) == private_meta["record_schema_source_sha256"] == runtime["record_schema_source_sha256"],
+                "Executed raw-schema source snapshot mismatch.")
         require(runtime["precision"] == private_meta["precision"] == "DOUBLE", "Non-DOUBLE record found.")
         records.append({"public_metadata": name, "raw_sha256": sha(raw_path),
                         "private_metadata_sha256": sha(private_path), "runtime_sha256": sha(runtime_path),
                         "executed_source_sha256": sha(source), "module_sha256": runtime["module_sha256"],
+                         "record_schema_source_sha256": sha(schema_source),
                         "wall_s": private_meta["wall_s"]})
     result = {"frozen_calibration_sha256": frozen_hash, "frozen_utc": freeze["frozen_utc"],
               "truth_validation_utc": datetime.now(timezone.utc).isoformat(), "private_truth_sha256": sha(truth_path),
               "rows": rows, "local_shape_resolution": data["local_shape_resolution"],
               "GPU_records": len(records), "records": records, "total_GPU_wall_s": sum(r["wall_s"] for r in records),
               "rho_error_target_pass": all(r["rho_error_target_pass"] for r in rows),
+               "raw_schema_checks": schema_checks,
               "scope": "Numerical calibration of a specified theoretical model using actual GPU records, not experimental inference.",
               "limitations": ["Input field and physical Mx readout normalization and phase are known.",
                               "No instrumental noise, unknown gain or material uncertainty is inferred.",

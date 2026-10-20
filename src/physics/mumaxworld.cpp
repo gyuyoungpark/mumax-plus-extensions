@@ -221,11 +221,12 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
   // Add oscillator coordinates to the same Runge-Kutta stages as the spins.
   for (const auto& namedMagnet : antiferromagnets_) {
     const Antiferromagnet* magnet = namedMagnet.second.get();
-    if (magnet->enableCavityAfm) {
+    if (magnet->enableCavityAfm()) {
+      magnet->validateCavityConfiguration();
       equations.emplace_back(
           magnet->cavityAmplitude(),
           std::shared_ptr<FieldQuantity>(new CavityAfmRHSQuantity(magnet)));
-      if (magnet->enableAuxMode) {
+      if (magnet->enableAuxMode()) {
         equations.emplace_back(
             magnet->auxAmplitude(),
             std::shared_ptr<FieldQuantity>(new AuxModeRHSQuantity(magnet)));
@@ -271,11 +272,17 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
 }
 
 void MumaxWorld::minimize(real tol, int nSamples) {
+  for (const auto& namedMagnet : antiferromagnets_)
+    if (namedMagnet.second->enableCavityAfm())
+      throw std::invalid_argument("Disable all cavities before spin-only world.minimize()");
   Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
 }
 
 void MumaxWorld::relax(real tol) {
+  for (const auto& namedMagnet : antiferromagnets_)
+    if (namedMagnet.second->enableCavityAfm())
+      throw std::invalid_argument("Disable all cavities before spin-only world.relax()");
   Relaxer relaxer(this, this->RelaxTorqueThreshold, tol);
   relaxer.exec();
 }

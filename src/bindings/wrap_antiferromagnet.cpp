@@ -38,14 +38,16 @@ void wrap_antiferromagnet(py::module& m) {
       .def("minimize", &Antiferromagnet::minimize, py::arg("tol"),
            py::arg("nsamples"))
       .def("relax", &Antiferromagnet::relax, py::arg("tol"))
-      .def_readwrite("enable_cavity_afm", &Antiferromagnet::enableCavityAfm)
+      .def_property("enable_cavity_afm", &Antiferromagnet::enableCavityAfm,
+                    &Antiferromagnet::setEnableCavityAfm)
       .def_readwrite("cavity_omega", &Antiferromagnet::cavityOmega)
       .def_readwrite("cavity_kappa", &Antiferromagnet::cavityKappa)
       .def_readwrite("cavity_h0", &Antiferromagnet::cavityH0)
       .def_readwrite("cavity_energy_field", &Antiferromagnet::cavityEnergyField)
       .def_readwrite("cavity_drive_re", &Antiferromagnet::cavityDriveRe)
       .def_readwrite("cavity_drive_im", &Antiferromagnet::cavityDriveIm)
-      .def_readwrite("enable_aux_mode", &Antiferromagnet::enableAuxMode)
+      .def_property("enable_aux_mode", &Antiferromagnet::enableAuxMode,
+                    &Antiferromagnet::setEnableAuxMode)
       .def_readwrite("aux_omega", &Antiferromagnet::auxOmega)
       .def_readwrite("aux_kappa", &Antiferromagnet::auxKappa)
       .def_readwrite("aux_j", &Antiferromagnet::auxJ)

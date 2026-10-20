@@ -5,9 +5,10 @@ numerator is supplied. Poles come from two independent free spin records.
 Pulse coefficients come from a known-field convolution least-squares fit.
 """
 from pathlib import Path
-import json,hashlib,argparse
+import json,hashlib,argparse,io
 import numpy as np
 from scipy.integrate import solve_ivp
+from record_schema import CLOCK_TOL_S, SCHEMA_SOURCE_SHA256, validate_record_schema
 
 HERE=Path(__file__).resolve().parent
 U=2*np.pi*1e9
@@ -17,28 +18,44 @@ PUB=None
 OUT=None
 def read_record(name):
     meta_path=PUB/(name+'.json');raw_path=PUB/(name+'.npz')
-    meta=json.loads(meta_path.read_text(encoding='utf-8'));raw=np.load(raw_path,allow_pickle=False)
-    assert sha(raw_path)==meta['raw_sha256']
-    READ.extend([{'path':meta_path.relative_to(PUB).as_posix(),'sha256':sha(meta_path)},{'path':raw_path.relative_to(PUB).as_posix(),'sha256':sha(raw_path)}])
-    return meta,{k:raw[k] for k in raw.files}
+    meta_bytes=meta_path.read_bytes();raw_bytes=raw_path.read_bytes()
+    meta=json.loads(meta_bytes.decode('utf-8'))
+    digest=hashlib.sha256(raw_bytes).hexdigest()
+    if digest!=meta.get('raw_sha256'):raise ValueError('Raw record hash differs: '+name)
+    if meta.get('raw_file')!=raw_path.name:raise ValueError('Raw filename differs: '+name)
+    with np.load(io.BytesIO(raw_bytes),allow_pickle=False) as archive:
+        raw={k:archive[k] for k in archive.files}
+    validate_record_schema(meta,raw,name=name)
+    READ.extend([{'path':meta_path.relative_to(PUB).as_posix(),'sha256':hashlib.sha256(meta_bytes).hexdigest()},{'path':raw_path.relative_to(PUB).as_posix(),'sha256':digest}])
+    return meta,raw
 
 POLE_WINDOWS=[(0,.04e-9),(.005e-9,.032e-9),(.01e-9,.04e-9)]
 FIT_WINDOWS=[(0,.08e-9),(.002e-9,.064e-9),(.01e-9,.08e-9)]
 def fit_poles(records,window):
     minus=[];plus=[];ranks=[]
+    clock=records[0][1]['t_s']
+    for _,raw in records:
+        if len(raw['t_s'])!=len(clock) or any(abs(float(a)-float(b))>CLOCK_TOL_S for a,b in zip(raw['t_s'],clock)):
+            raise ValueError('Independent free seeds must share the same saved clock')
     for _,raw in records:
         x=raw['m6'][:,[0,1,3,4]];t=raw['t_s'];mask=(t>=window[0]-1e-24)&(t<=window[1]+1e-24)
-        x=x[mask];scale=np.linalg.norm(x[0]);x=x/scale
+        x=x[mask]
+        if len(x)<2:raise ValueError('Free-pole window contains fewer than two saved samples')
+        scale=np.linalg.norm(x[0])
+        if not np.isfinite(scale) or scale<=0:raise ValueError('Free-seed scale must be finite and nonzero')
+        x=x/scale
         minus.append(x[:-1].T);plus.append(x[1:].T)
         ranks.append(int(np.linalg.matrix_rank(x,tol=np.linalg.norm(x)*1e-9)))
     X=np.concatenate(minus,axis=1);Y=np.concatenate(plus,axis=1)
     uu,sv,vh=np.linalg.svd(X,full_matrices=False)
-    rank=int(np.count_nonzero(sv>sv[0]*1e-9));assert rank==4,(rank,sv)
+    rank=int(np.count_nonzero(sv>sv[0]*1e-9))
+    if rank!=4:raise RuntimeError('Joined free-seed rank must be four: '+str((rank,sv)))
     P=(Y@vh.T)@np.diag(1/sv)@uu.T
     dt=records[0][1]['t_s'][1]-records[0][1]['t_s'][0]
     poles=np.log(np.linalg.eigvals(P))/(dt*U)
     omega=float(np.mean(abs(poles.imag)));gamma=float(np.mean(-poles.real))
-    assert omega>0 and gamma>0
+    if not np.isfinite(poles).all() or not (omega>0 and gamma>0):
+        raise RuntimeError('Fitted free poles must be finite with positive frequency and decay')
     return {'window_s':list(window),'Gamma_bar':gamma,'Omega_bar':omega,
        'poles_bar':[[float(z.real),float(z.imag)] for z in poles],
        'joined_data_rank':rank,'individual_trace_ranks':ranks,'state_data_singular_values':sv.tolist(),
@@ -63,15 +80,19 @@ def convolution_design(meta,raw,gamma,omega):
         return [q[1],B-2*gamma*q[1]-S*q[0],q[3],dB-2*gamma*q[3]-S*q[2]]
     tau=raw['t_s']*U
     sol=solve_ivp(rhs,(tau[0],tau[-1]),np.zeros(4),t_eval=tau,method='DOP853',rtol=2e-12,atol=1e-24,max_step=.0005)
-    assert sol.success
+    if not sol.success:raise RuntimeError('Known-input convolution solver failed: '+sol.message)
     computed_B=np.array([pulse_and_derivative_tau(v,meta)[0] for v in tau])
-    assert np.max(abs(computed_B-raw['B_T']))<1e-17
+    if not np.max(abs(computed_B-raw['B_T']))<1e-17:
+        raise ValueError('Recorded field differs from the declared waveform')
     return np.column_stack([sol.y[2],sol.y[0]])
 
 def coefficients(design,raw,window):
     t=raw['t_s'];mask=(t>=window[0]-1e-24)&(t<=window[1]+1e-24)
     X=design[mask];y=raw['Mx'][mask];scale=np.linalg.norm(X,axis=0)
-    normalized=X/scale;beta,_,rank,sv=np.linalg.lstsq(normalized,y,rcond=None);assert rank==2
+    if not np.isfinite(scale).all() or not (scale>0).all():
+        raise ValueError('Convolution columns must have finite nonzero scale')
+    normalized=X/scale;beta,_,rank,sv=np.linalg.lstsq(normalized,y,rcond=None)
+    if rank!=2:raise RuntimeError('Known-input convolution design must have rank two')
     coef=beta/scale;res=y-X@coef;sigma2=float(res@res/(len(y)-2))
     covariance=np.linalg.inv(normalized.T@normalized)*sigma2/scale[:,None]/scale[None,:]
     A,B=coef;rho=A/B/U
@@ -167,7 +188,8 @@ def main():
         print(json.dumps({'case_id':cid,'chosen':chosen,'Gamma_bar':pole['Gamma_bar'],'Omega_bar':pole['Omega_bar'],'rho_s':fit['rho_s'],'normalized_condition':fit['normalized_design_condition'],'fit_residual':fit['relative_residual_L2']}),flush=True)
     result={'scope':'Independent physical free-response fit using only time, spin observations and applied Bx waveform; no coupled fit and no material truth inputs.',
      'unit_rate_rad_s':U,'units':{'Gamma_bar':'Gamma/u','Omega_bar':'Omega/u','A_tilde_per_T':'a_tilde/u [1/T]','B_tilde_per_T':'b_tilde/u^2 [1/T]','rho_s':'A_tilde/B_tilde/u [s]'},
-     'cases':cases,'public_read_manifest':READ,'public_paths_relative_to':'supplied public directory','analyzer_sha256':sha(__file__),'final_records_required':not args.allow_partial,
+      'cases':cases,'public_read_manifest':READ,'public_paths_relative_to':'supplied public directory','analyzer_sha256':sha(__file__),
+      'record_schema_source_sha256':SCHEMA_SOURCE_SHA256,'final_records_required':not args.allow_partial,
      'formula_used':'Dbar Mx = A_tilde dB/dtau + B_tilde B; tau=u*t. Poles estimated by unconstrained 4-channel DMD of two free seeds.'}
     if {'A','B'}.issubset({c['case_id'] for c in cases}):
         pair={c['case_id']:c for c in cases};effect=abs(pair['B']['rho_s']-pair['A']['rho_s'])

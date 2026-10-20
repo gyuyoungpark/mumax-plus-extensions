@@ -4,11 +4,13 @@
     {
       "path": "single_message_ep/primary/zero_field_ep.py",
       "validated_source_sha256": "eabd6357bf0d7a73229a1b57a3e7553fd2197458f8672a222aa7b9d90dcae56f",
-      "published_source_sha256": "7139e56099ab66152d63231409d7c52cf0cbddca1ce127f62b89c5b25eb45f18",
+      "published_source_sha256": "b40083b4b8b387dc126d61fa6defb713a995ce44db8833b1165a7c04884e6087",
       "portability_changes": [
         "Use bundled frozen energy source only; remove local source fallback and absolute path output.",
         "Replace internal manuscript cross-reference with standalone model description."
-      ]
+      ],
+      "previous_published_source_sha256": "7139e56099ab66152d63231409d7c52cf0cbddca1ce127f62b89c5b25eb45f18",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "single_message_ep/primary/inputs/energy_model.py",
@@ -21,51 +23,63 @@
     {
       "path": "single_message_ep/independent/audit_zero_field_ep.py",
       "validated_source_sha256": "168a0eec75bcebf6b8b7b37d144a10d82b0cecdfdf0e2db67620c5f0d54ae016",
-      "published_source_sha256": "168a0eec75bcebf6b8b7b37d144a10d82b0cecdfdf0e2db67620c5f0d54ae016",
+      "published_source_sha256": "04083b913264f1a0eb5c6f29d92167cd96cae7e9bd4ca128e8cb26bba7532b6f",
       "portability_changes": [
         "No scientific or runtime changes; line endings normalized only."
-      ]
+      ],
+      "previous_published_source_sha256": "168a0eec75bcebf6b8b7b37d144a10d82b0cecdfdf0e2db67620c5f0d54ae016",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c1/run_c1.py",
       "validated_source_sha256": "3448dd6de6120366300d5a234de67c255111aa358de876d3e10b3849ed419380",
-      "published_source_sha256": "b906ea13fe0a4f75d16faf84dfdce1df4c6517ee46b439e9c00ad461164ba4ee",
+      "published_source_sha256": "9fc895a113fb08949d8db5a28a8e7e016d4c93629a548f476ae1b9d338b60855",
       "portability_changes": [
         "Record package-relative input paths; all numerical code unchanged."
-      ]
+      ],
+      "previous_published_source_sha256": "b906ea13fe0a4f75d16faf84dfdce1df4c6517ee46b439e9c00ad461164ba4ee",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c3/predict.py",
       "validated_source_sha256": "115be2dd0973f4cf2233cfc8153fe4488bc386bf25afdd4b755eb6a9ecfb04d6",
-      "published_source_sha256": "115be2dd0973f4cf2233cfc8153fe4488bc386bf25afdd4b755eb6a9ecfb04d6",
+      "published_source_sha256": "6f8e222c849a34f77dfa50aa8e16f4672e7ba76903aa57fac36bc5f19c9d0f48",
       "portability_changes": [
         "No scientific or runtime changes; line endings normalized only."
-      ]
+      ],
+      "previous_published_source_sha256": "115be2dd0973f4cf2233cfc8153fe4488bc386bf25afdd4b755eb6a9ecfb04d6",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c3/prepare_public_settings.py",
       "validated_source_sha256": "9c26307089f65f02670445aa2b8fa357c6b4afe5c52eb87381205a02bd75abd5",
-      "published_source_sha256": "8905863bcfbb871a38555ba8d692b8730a73e2e756dca563680be146cfb5874f",
+      "published_source_sha256": "caa862ef18c05d1cf5f2387f020e941778c9882a3d2c76d0cfeb6489e3779e8f",
       "portability_changes": [
         "Clarify numerical predictor separation without implying an externally blinded experiment."
-      ]
+      ],
+      "previous_published_source_sha256": "8905863bcfbb871a38555ba8d692b8730a73e2e756dca563680be146cfb5874f",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c3/validate.py",
       "validated_source_sha256": "b7e0d03f91b7737163c0fa1afc6356007a3d210ae318f846710112606701327a",
-      "published_source_sha256": "b7e0d03f91b7737163c0fa1afc6356007a3d210ae318f846710112606701327a",
+      "published_source_sha256": "88274f018dd4d0b227d490dcd0142010ada7cb44104b521b35aae3cece957c88",
       "portability_changes": [
         "No scientific or runtime changes; line endings normalized only."
-      ]
+      ],
+      "previous_published_source_sha256": "b7e0d03f91b7737163c0fa1afc6356007a3d210ae318f846710112606701327a",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c4/run_c4.py",
       "validated_source_sha256": "9f807fd20bfffaec149db17a23ac5a84351580616e289faf5023a14825298c6b",
-      "published_source_sha256": "78e628b65852316d2e3235a16991aa88a6aa9749a244f2c3764f94c77127e212",
+      "published_source_sha256": "8228a4e9373eeb0ed372ccb8b2dffb4b7a7d729d2e471a58f667393c88479a37",
       "portability_changes": [
         "Replace internal coordination wording; generate minimal runtime protocol metadata if absent.",
         "Numerical inputs, solver, diagnostic ranges and equations unchanged."
-      ]
+      ],
+      "previous_published_source_sha256": "78e628b65852316d2e3235a16991aa88a6aa9749a244f2c3764f94c77127e212",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "run_cpu.py",
@@ -79,30 +93,93 @@
     {
       "path": "response_shape_validation/c2/run_gpu.py",
       "validated_source_sha256": "32b2bf86a59bcf7bd5bf1837e690ddf05b8a2664f8edb6c8d42b8bb3302ba599",
-      "published_source_sha256": "27b345cc7d99ab16f4a51915828a5f81fda0039792cbc8a68db3266789d89198",
+      "published_source_sha256": "271194fe6569888683a429ced0b92117ea98ae8bda48af84a3103a82e9f651e7",
       "portability_changes": [
         "Use the currently installed DOUBLE runtime and explicit capability checks; remove private DLL paths and historical binary hash requirements.",
         "Use a common output root, record new runtime/source provenance, explicitly set the declared gyromagnetic ratio, and generate the final 28-record protocol by default."
-      ]
+      ],
+      "previous_published_source_sha256": "27b345cc7d99ab16f4a51915828a5f81fda0039792cbc8a68db3266789d89198",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c2/fit_public.py",
       "validated_source_sha256": "5845f31117a619955435eea1f6a75fc191a4d4bceac764445cdfaf99b7654da3",
-      "published_source_sha256": "c9597a79b2c01262b82a5e09787ee1c19c1ef6b4393f9fa79115ae0827ed7818",
+      "published_source_sha256": "618e53ffc38e22b5feb9e41cacff08c14d80fc106cb33d1f154ee922fd2d5f75",
       "portability_changes": [
         "Keep pole fitting, convolution, coefficient fitting and numerical envelope calculations; use an explicit common output root and relative public read paths.",
         "Require final-protocol records by default, allow isolated public inputs, and mark partial development fits as ineligible for freezing.",
         "Normalize line endings to LF for stable Git source hashes."
-      ]
+      ],
+      "previous_published_source_sha256": "c9597a79b2c01262b82a5e09787ee1c19c1ef6b4393f9fa79115ae0827ed7818",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
     },
     {
       "path": "response_shape_validation/c2/validate_and_freeze.py",
       "validated_source_sha256": "808b50ca6c4a6d841cc9d3375894379e1e5d4f7d7eab4ea345a162f56ea8375f",
-      "published_source_sha256": "9c7dc9e8cfe592015a32c35b9602535751904b08eb11b8f90fd4305fe8da1a05",
+      "published_source_sha256": "d9e626cc24ff45e1612c6653c1ba013d91f7bd4669fc868afa06d603a9b13423",
       "portability_changes": [
         "Freeze new public calibration with fitter/observation hashes before reading generated model truth.",
         "Use new runtime/source provenance and common output root; remove historical execution-source special cases and preserve frozen files."
+      ],
+      "previous_published_source_sha256": "9c7dc9e8cfe592015a32c35b9602535751904b08eb11b8f90fd4305fe8da1a05",
+      "source_update_2026_10_21": "Source-only admission/import/publication safeguards. Numerical equations, thresholds and earlier validated-source identity are preserved. C2 now requires separately identified observed-clock records. No new scientific execution or numerical acceptance is implied."
+    },
+    {
+      "path": "response_shape_validation/c2/record_schema.py",
+      "validated_source_sha256": null,
+      "published_source_sha256": "f8b2f5919f9508fb7387cfd0bca736d919e48336a7aa6ed9fad19cb42d9b1ca3",
+      "portability_changes": [
+        "New standard-library input/clock/state admission or metadata regression source; no scientific execution."
       ]
     }
-  ]
+  ],
+  "source_update_status": "SOURCE_AUDITED_AND_SOFTWARE_CHECKED; native physical rerun pending",
+  "previous_public_commit": "09010f0956b8061c15e80521a0cde497ed77a1d1",
+  "source_audit_2026_10_21": {
+    "scope": "Restricted uniform equal-moment AFM model; source and software checks only",
+    "host_only_configuration_checks": 38,
+    "host_cpp_translation_units_syntax_checked": 6,
+    "independent_source_review": "PASS_FOR_SOURCE_ONLY_GUARD_AND_REGISTRATION_FIXES",
+    "native_sources": [
+      {
+        "path": "src/physics/cavityconfig.hpp",
+        "sha256_lf_normalized": "650f1dc44bcb5638600b59b379ca5d1a2e44c6bd7277c8bbcd7c96b5bfd3515d"
+      },
+      {
+        "path": "src/physics/antiferromagnet.hpp",
+        "sha256_lf_normalized": "707d06adc148ff7cc0030a61ae14641192c57ae2bf6be9e164d9aa96177d46fd"
+      },
+      {
+        "path": "src/physics/antiferromagnet.cpp",
+        "sha256_lf_normalized": "b823e61489aa08bbd8a93ef203539daf103b323881df7d61bc1a6825e8549f5a"
+      },
+      {
+        "path": "src/physics/cavityafm.cu",
+        "sha256_lf_normalized": "fcc03d01fc0ce1aaeb3db7ec13521811c049877e462a379ef54ad9c445fc1ea3"
+      },
+      {
+        "path": "src/physics/mumaxworld.cpp",
+        "sha256_lf_normalized": "11fa9fffa7c2ced4d82dc71bec4793e03f5bf0be672887a5ed85ee0692b6fc9f"
+      },
+      {
+        "path": "src/physics/ferromagnet.cpp",
+        "sha256_lf_normalized": "61ffd5562a1416b9f95ad2b4ac8c514b875543bcacdc823a4ea29c995c1ee876"
+      },
+      {
+        "path": "src/core/timesolver.cpp",
+        "sha256_lf_normalized": "065d736b95656565c6e18f92f76dcafe196f6c2ed06023c95a9826c9540e0f83"
+      },
+      {
+        "path": "src/bindings/wrap_antiferromagnet.cpp",
+        "sha256_lf_normalized": "25f48f9a39bbff8742f8f942aa1df9b392f3c4288e7dd5ad0def0bd26817069c"
+      },
+      {
+        "path": "test/cavity_config_host.cpp",
+        "sha256_lf_normalized": "e1b3f69ea3a3635b3b22e6716a7340b4e15b0b7afb2484e0f3fc363817e314d3"
+      }
+    ],
+    "new_physical_trajectories_fft_eigensolves_fits": false,
+    "updated_native_cuda_build_link_gpu_regression": "TODO",
+    "old_scientific_acceptance_transferred_to_updated_hashes": false
+  }
 }

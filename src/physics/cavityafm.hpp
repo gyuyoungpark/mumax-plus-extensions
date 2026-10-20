@@ -13,7 +13,9 @@ FM_FieldQuantity cavityAfmFieldQuantity(const Ferromagnet* fm);
 
 // Primary energy-normalized oscillator, stored as (q_a, p_a, unused).
 // dq_a/dt = omega_a p_a; dp_a/dt = -omega_a q_a - 2 kappa_a p_a
-// + omega_a H_a <m1x+m2x>/(2 B_E) - 2 J sqrt(omega_a/omega_d) q_d.
+// + omega_a H_a <m1x+m2x>/(2 B_norm) - 2 J sqrt(omega_a/omega_d) q_d.
+// B_norm is the positive cavityEnergyField normalization, chosen as B_E
+// in the examples. Both sublattices must have equal, static, uniform Ms.
 // The source and uniform spin field follow the same Zeeman energy.
 class CavityAfmRHSQuantity : public FieldQuantity {
  public:

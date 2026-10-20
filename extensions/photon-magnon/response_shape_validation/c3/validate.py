@@ -1,4 +1,7 @@
 """Post-freeze original-sublattice energy validation; never alters predictions."""
+
+if __name__ != '__main__':
+    raise RuntimeError('Script entry point; use run_cpu.py demo or predict.')
 from pathlib import Path
 from datetime import datetime,timezone
 import hashlib,json
@@ -12,11 +15,15 @@ def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def dec(x):return mp.nstr(x,55)
 def enc(z):return {'real':dec(mp.re(z)),'imag':dec(mp.im(z))}
 pred=read(W/'predictions_frozen.json')
-assert sha(W/'predictions_frozen.json')==(W/'predictions_frozen.sha256').read_text().split()[0]
+if not (sha(W/'predictions_frozen.json')==(W/'predictions_frozen.sha256').read_text().split()[0]):
+    raise AssertionError()
 frozen_hash=sha(W/'predictions_frozen.json');started=datetime.now(timezone.utc).isoformat()
-assert pred['frozen_utc']<started
+if not (pred['frozen_utc']<started):
+    raise AssertionError()
 spec=read(W/'prediction_settings.json')
-for name,digest in pred['read_files'].items():assert sha(W/name)==digest
+for name,digest in pred['read_files'].items():
+    if not (sha(W/name)==digest):
+        raise AssertionError()
 # Private truth is opened for the first time in the coupled pipeline here.
 private=read(W.parent/'c2/private/truth_by_case.json')
 if 'cases' in private:
@@ -69,14 +76,16 @@ def solve_full_ep(cid,kap,seed):
     start=(M(seed['B_star_T'])*M('1e6'),M(seed['wc_GHz']),M(seed['pole']['real']),M(seed['pole']['imag']))
     sol=mp.findroot(eq,start,tol=M('1e-58'),maxsteps=35)
     bf,wc=sol[0]*M('1e-6'),sol[1];z=mp.mpc(sol[2],sol[3])
-    assert bf>0 and wc>0 and z.real<0 and abs(z.imag)>1
+    if not (bf>0 and wc>0 and z.real<0 and abs(z.imag)>1):
+        raise AssertionError()
     A,K,J,R=matrix(cid,bf,wc,kap);F=z*mp.eye(6)-A
     det=lambda v:mp.det(v*mp.eye(6)-A)
     resid=max(abs(x) for x in eq(*sol));dd=abs(mp.diff(det,z,2))/om**4
     # Any nonzero order-five minor plus a double root proves nullity one.
     mi=max(abs(mp.det(mp.matrix([[F[i,j] for j in range(6) if j!=c] for i in range(6) if i!=r])))/om**5 for r in range(6) for c in range(6))
     emin=min(mp.eigsy(K,eigvals_only=True));rmin=min(mp.eigsy(R,eigvals_only=True))
-    assert resid<M('1e-45') and dd>M('1e-8') and mi>M('1e-8') and emin>0 and rmin>=0
+    if not (resid<M('1e-45') and dd>M('1e-8') and mi>M('1e-8') and emin>0 and rmin>=0):
+        raise AssertionError()
     return {'B_star_T':dec(bf),'wc_GHz':dec(wc),'G_U_GHz':dec(coupling(cid,bf)),'pole':enc(z),'Q':dec(wc/(2*kap)),
       'certificate':{'normalized_p_and_dp_max':dec(resid),'normalized_second_derivative':dec(dd),'max_normalized_5_minor':dec(mi),'energy_min_eigenvalue':dec(emin),'dissipation_min_eigenvalue':dec(rmin)}}
 
@@ -121,7 +130,8 @@ for row in pred['common_G_responses']:
     common.append({'case_id':row['case_id'],'physical_operating_point':p,'reported_G_U_GHz':dec(coupling(row['case_id'],bf)),'response':resp})
     curves['common_'+row['case_id']]=full
 np.savez_compressed(W/'full_response_curves.npz',frequency_GHz=frequencies,**curves)
-assert sha(W/'predictions_frozen.json')==frozen_hash
+if not (sha(W/'predictions_frozen.json')==frozen_hash):
+    raise AssertionError()
 out={'status':'completed','frozen_prediction_sha256':frozen_hash,'frozen_utc':pred['frozen_utc'],'validation_started_utc':started,
  'validator_sha256':sha(Path(__file__)),'scope':'Independent original-sublattice6D validation after public free-data-only prediction; numerical resolution gates evaluated separately in C4.',
  'units':'fc errorsMHz; per-branch G errorskHz; physical B in tesla. Rates labelled GHz mean angular rate/(2pi1GHz).',

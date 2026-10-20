@@ -1,0 +1,170 @@
+{
+  "schema": "photon_magnon_methods_source_port_v1",
+  "original_snapshot_label": "arxiv_update_2026-10-20",
+  "original_source_freeze": {
+    "bytes": 13286,
+    "sha256": "24d551121025c5ac21de7e09cb9bc78750ef2d27e0bbfde9d105cd3ca6f67127"
+  },
+  "original_acceptance": {
+    "preflight_controls": 31,
+    "preflight_review": {
+      "bytes": 19713,
+      "sha256": "3894e5086e352076035899f6538cba9c05623aa676ce7dd0485b126f93476385"
+    },
+    "physical_scope": "One lossless uniform CPU FM prototype condition with two independent full-state references; original exact hashes only.",
+    "physical_acceptance_receipt": {
+      "bytes": 11393,
+      "sha256": "9117d75e4222caaa1461392ca5e0c3d349d4813b81e9b57b703d13162fab6854"
+    },
+    "physical_crash_resume_tested": false,
+    "acceptance_transferred_to_edited_port": false
+  },
+  "port_validation": {
+    "kind": "standard_library_metadata_io_and_static_only",
+    "status": "PASS",
+    "metadata_io_tests_passed": 28,
+    "test_groups": "20 retained metadata/I/O tests plus 8 inert callback/AFM declaration regressions",
+    "ast_parsed_python_files": 9,
+    "help_and_source_identity_commands_passed": true,
+    "scientific_modules_loaded": false,
+    "physical_rhs_or_engine_advance_executed": false,
+    "new_dynamics_fft_eigensolve_fit_or_native_execution": false
+  },
+  "files": [
+    {
+      "path": "analysis/README.txt",
+      "original_path": "analysis/README.txt",
+      "original_source_sha256": "0953a7ab750f48e8845dfca63a1e75e7dfd1d342c949afdd3bcff119c3c84f1d",
+      "original_source_bytes": 12123,
+      "published_source_sha256": "f89f6745317c71c4ea26a62a3aef44561aec00ed8fda7bb72b37aeddcc8a4ced",
+      "published_source_bytes": 12153,
+      "byte_identical": false,
+      "changes": [
+        "Make commands and output-root wording portable; replace internal agent/workspace and absent scientific-test references with exact original-versus-port evidence limits."
+      ]
+    },
+    {
+      "path": "analysis/analyze_raw.py",
+      "original_path": "analysis/analyze_raw.py",
+      "original_source_sha256": "f4eb78eee8ed3ffece222a6028e4a7a066bf3698ccbfb0fac1a411b3365d8d0b",
+      "original_source_bytes": 17204,
+      "published_source_sha256": "30919ac9e074cf4a19550f6ba3769d586ebf737047e3b879ad6aa238266a035f",
+      "published_source_bytes": 17188,
+      "byte_identical": false,
+      "changes": [
+        "Replace the private-development output-path wording with methods/analysis_outputs. Output confinement, approval/configuration/source binding and numerical behavior are unchanged."
+      ]
+    },
+    {
+      "path": "src/cavity_method/__init__.py",
+      "original_path": "src/cavity_method/__init__.py",
+      "original_source_sha256": "5f3187bcb451a45a5453c61f32a0544c1a8bc8bb5e5f29bbaf49c7f6220f8a24",
+      "original_source_bytes": 824,
+      "published_source_sha256": "bccb70d8edc0789e4c918802d975e3b12f0c78f4d98d028c8d62b9aa98a21711",
+      "published_source_bytes": 1136,
+      "byte_identical": false,
+      "changes": [
+        "Describe this as a derived source-only port. Distinguish original exact-hash finite evidence from unexecuted scientific validation of edited public hashes."
+      ]
+    },
+    {
+      "path": "src/cavity_method/adapters.py",
+      "original_path": "src/cavity_method/adapters.py",
+      "original_source_sha256": "8d5ee97d4b57b57f8bf00ef56a00caee03cc7f71f21f7b389cab375011fe06f2",
+      "original_source_bytes": 24363,
+      "published_source_sha256": "b5e7ed2b16fd86e07ae93ac4879f279bee4c36ec6471098ba00574d965eb8b29",
+      "published_source_bytes": 26102,
+      "byte_identical": false,
+      "changes": [
+        "Update stale blanket-unexecuted prose to the precise original finite CPU FM scope and edited-port limitation.",
+        "C001 approved fix: every restoration failure leaves _prepared=False and _broken=True, including a final sample callback failure.",
+        "C002 approved fix: reject invalid/empty/self/duplicate AFM partner declarations; require distinct bound AFM peers sharing the same host and complete declarations within that bound group. Actual physical host completeness and callback ownership remain an unvalidated caller contract."
+      ]
+    },
+    {
+      "path": "src/cavity_method/energy.py",
+      "original_path": "src/cavity_method/energy.py",
+      "original_source_sha256": "27a3b2a29c19dbc9250c42c09beaed79f7278f51ea1285d22db0e4e8d23d6a40",
+      "original_source_bytes": 11456,
+      "published_source_sha256": "27a3b2a29c19dbc9250c42c09beaed79f7278f51ea1285d22db0e4e8d23d6a40",
+      "published_source_bytes": 11456,
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "path": "src/cavity_method/normalization.py",
+      "original_path": "src/cavity_method/normalization.py",
+      "original_source_sha256": "4febfd3f3de6afaac27a7d6df4b446d5fb49ec694e982b6ebb40beb0490c36b9",
+      "original_source_bytes": 2352,
+      "published_source_sha256": "4febfd3f3de6afaac27a7d6df4b446d5fb49ec694e982b6ebb40beb0490c36b9",
+      "published_source_bytes": 2352,
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "path": "src/cavity_method/provenance.py",
+      "original_path": "src/cavity_method/provenance.py",
+      "original_source_sha256": "2810df4bdb64a79e9835dceb0c3ab0c4f1a527408a94526f7b9f56cf67e01504",
+      "original_source_bytes": 18331,
+      "published_source_sha256": "2810df4bdb64a79e9835dceb0c3ab0c4f1a527408a94526f7b9f56cf67e01504",
+      "published_source_bytes": 18331,
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "path": "src/cavity_method/spectrum.py",
+      "original_path": "src/cavity_method/spectrum.py",
+      "original_source_sha256": "df5ff5812402776045ab27e64daeaf68aade0b4ff661cf55fbb71d51a66a1eca",
+      "original_source_bytes": 28523,
+      "published_source_sha256": "df5ff5812402776045ab27e64daeaf68aade0b4ff661cf55fbb71d51a66a1eca",
+      "published_source_bytes": 28523,
+      "byte_identical": true,
+      "changes": []
+    },
+    {
+      "path": "tests/test_analysis_metadata_io.py",
+      "original_path": "tests/test_analysis_metadata_io.py",
+      "original_source_sha256": "4ea8a645946e1ca0baa5c5133f2b5872091e8dfed328d8d47cb5ada917c8fd90",
+      "original_source_bytes": 7071,
+      "published_source_sha256": "4eef2f7946064b798e01b6b0f39272f49ab8c55f82fc10648010004c491cf6ec",
+      "published_source_bytes": 12284,
+      "byte_identical": false,
+      "changes": [
+        "Add eight standard-library inert callback/AFM metadata regressions. The fake model has no physical RHS and the engine advance callback always raises; no dynamics or FFT is performed."
+      ]
+    },
+    {
+      "path": "tests/test_metadata_io_only.py",
+      "original_path": "tests/test_metadata_io_only.py",
+      "original_source_sha256": "e469025315825e6cd8f927d6556afbbc3b79ee695b336138d322983a959d7007",
+      "original_source_bytes": 4220,
+      "published_source_sha256": "fe62341904402471bd4c78da0a86429cffcb49ee21a87f144beeaf7d0b0a9dd6",
+      "published_source_bytes": 4014,
+      "byte_identical": false,
+      "changes": [
+        "Use the operating system temporary directory instead of assuming a repository reports directory exists."
+      ]
+    }
+  ],
+  "new_public_files": [
+    {
+      "path": "README.md",
+      "bytes": 6090,
+      "sha256": "23c9308dc179013ec5c3fb8bc09dca84a180b49db67d536c6421b5b8a24f24b5"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 56,
+      "sha256": "38dfa7206fbe80698c4e4247e0f77aa27bac53a0c6f8547499bad4e84c07a9c8"
+    }
+  ],
+  "map_self_identity": "This generated mapping does not include a self-referential hash.",
+  "limitations": [
+    "This source-only port is not the complete native mumax-plus extension.",
+    "Original finite evidence is not an empirical validation of changed public hashes.",
+    "No physical restart, convergence order, damped power balance, AFM, spatial, multimode, passive dissipative or GPU/performance validation was performed for this port.",
+    "Hook metadata checks do not prove correct physical callback ownership, actual host completeness or material/geometry normalization.",
+    "No campaign, raw scientific records, fitted outputs, manuscripts, private approval/runtime paths or binaries are included.",
+    "Existing public photon-magnon/native entry points are separate and were not replaced by this port."
+  ]
+}

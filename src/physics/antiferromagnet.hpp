@@ -38,15 +38,19 @@ class Antiferromagnet : public HostMagnet {
  void relax(real tol);
 
  // Energy-normalized uniform-x cavity coordinates (q, p, unused).
- // E0 = M_s V * cavityEnergyField, for one sublattice.
- bool enableCavityAfm = false;
+ // E0 = M_s V_occupied * cavityEnergyField, for ONE equal, static,
+ // spatially uniform-Ms sublattice. The two sublattices share geometry.
+ bool enableCavityAfm() const { return enableCavityAfm_; }
+ void setEnableCavityAfm(bool);
+ bool enableAuxMode() const { return enableAuxMode_; }
+ void setEnableAuxMode(bool);
+ void validateCavityConfiguration() const;
  real cavityOmega = 0.0;
  real cavityKappa = 0.0;
  real cavityH0 = 0.0; // Tesla multiplying q in the field on BOTH sublattices.
- real cavityEnergyField = 1.0; // Positive B_E in tesla for the supplied normalization.
+ real cavityEnergyField = 1.0; // Positive normalization field (chosen as B_E in examples).
  real cavityDriveRe = 0.0; // Additive dq/dt drive, in 1/s.
  real cavityDriveIm = 0.0; // Additive dp/dt drive, in 1/s.
- bool enableAuxMode = false;
  real auxOmega = 0.0;
  real auxKappa = 0.0;
  real auxJ = 0.0;
@@ -58,6 +62,9 @@ class Antiferromagnet : public HostMagnet {
  std::shared_ptr<const System> auxAmplitudeSystem() const;
 
  private:
+  bool enableCavityAfm_ = false;
+  bool enableAuxMode_ = false;
+  void validateCavityConfiguration(bool enabled, bool auxiliary) const;
   Ferromagnet sub1_;
   Ferromagnet sub2_;
   Variable cavityAmplitude_;

@@ -17,6 +17,9 @@ import sys
 import time
 
 import numpy as np
+from record_schema import (CLOCK_SCHEMA, CLOCK_TOL_S, SCHEDULE_TOL_S,
+                           SCHEMA_SOURCE_SHA256, validate_clock_sample,
+                           validate_record_schema)
 
 U = 2 * np.pi * 1e9
 GAMMA_G = 1.7595e11
@@ -111,19 +114,44 @@ def main():
 
     here = args.output.resolve() / "response_shape_validation" / "c2"
     public, private = here / "public", here / "private"
+    protocol_path = here / "protocol.json"
+    # Refuse old planned-only records before touching their metadata/provenance.
+    if protocol_path.exists() or (public.exists() and any(public.glob("*.npz"))):
+        if not protocol_path.exists():
+            raise RuntimeError("Existing C2 observations lack observed-clock protocol; choose a new output root.")
+        previous_protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+        if (previous_protocol.get("clock_schema") != CLOCK_SCHEMA
+                or previous_protocol.get("record_schema_source_sha256") != SCHEMA_SOURCE_SHA256):
+            raise RuntimeError("Existing C2 clock/schema source differs; choose a new output root. Old records are preserved.")
     for folder in (public, private, here / "source_versions", here / "runtime"):
         folder.mkdir(parents=True, exist_ok=True)
     source_hash = sha(SOURCE)
     (here / "source_versions" / f"run_gpu_{source_hash}.py").write_bytes(SOURCE.read_bytes())
+    schema_path = SOURCE.with_name("record_schema.py")
+    if sha(schema_path) != SCHEMA_SOURCE_SHA256:
+        raise RuntimeError("Raw-schema source changed after import; restart in a new output root.")
+    schema_snapshot = here / "source_versions" / f"record_schema_{SCHEMA_SOURCE_SHA256}.py"
+    if schema_snapshot.exists():
+        if sha(schema_snapshot) != SCHEMA_SOURCE_SHA256:
+            raise RuntimeError("Existing raw-schema source snapshot differs; choose a new output root.")
+    else:
+        schema_snapshot.write_bytes(schema_path.read_bytes())
     provenance = {"created_utc": datetime.now(timezone.utc).isoformat(),
                   "precision": mp.FP_PRECISION, "module_path": str(Path(cpp.__file__).resolve()),
                   "module_sha256": sha(cpp.__file__), "wrapper_path": str(Path(mp.__file__).resolve()),
                   "wrapper_sha256": sha(mp.__file__), "source_sha256": source_hash,
                   "python": sys.version, "numpy": np.__version__, "required_bindings": list(required),
+                  "record_schema_source_sha256": SCHEMA_SOURCE_SHA256,
                   "runtime_paths_are_local_outputs_only": True}
     runtime_id = hashlib.sha256(json.dumps({k: provenance[k] for k in (
         "precision", "module_sha256", "wrapper_sha256", "source_sha256")}, sort_keys=True).encode()).hexdigest()
-    write_json(here / "runtime" / f"{runtime_id}.json", provenance)
+    runtime_path = here / "runtime" / f"{runtime_id}.json"
+    if runtime_path.exists():
+        previous_runtime = json.loads(runtime_path.read_text(encoding="utf-8"))
+        if any(previous_runtime.get(key) != provenance[key] for key in provenance if key != "created_utc"):
+            raise RuntimeError("An existing runtime identity has different provenance; choose a new output root.")
+    else:
+        write_json(runtime_path, provenance)
     if args.check_runtime:
         print(json.dumps({"runtime_checked": True, "precision": mp.FP_PRECISION,
                           "module_sha256": provenance["module_sha256"]}), flush=True)
@@ -133,10 +161,18 @@ def main():
                 "final_pulse_duration_s": 80e-12, "pilot_duration_s": 200e-12,
                 "final_pole_windows_s": [[0, 40e-12], [5e-12, 32e-12], [10e-12, 40e-12]],
                 "final_pulse_windows_s": [[0, 80e-12], [2e-12, 64e-12], [10e-12, 80e-12]],
-                "public_schema": "t_s,m6,Mx,B_T and waveform metadata; no r,BE,BA,alpha or analytic coefficients.",
+                "public_schema": "observed t_s,planned_t_s,m6,Mx,B_T and waveform metadata; no r,BE,BA,alpha or analytic coefficients.",
+                "clock_schema": CLOCK_SCHEMA, "time_sampling": "observed_solver_clock",
+                "time_interpolated": False, "clock_absolute_tolerance_s": CLOCK_TOL_S,
+                "schedule_absolute_tolerance_s": SCHEDULE_TOL_S,
+                "record_schema_source_sha256": SCHEMA_SOURCE_SHA256,
                 "numerical_target": "Each observable error or sampled numerical envelope <0.1 of its shape effect; not an experimental criterion.",
                 "source_sha256": source_hash}
-    write_json(here / "protocol.json", protocol)
+    if protocol_path.exists():
+        if json.loads(protocol_path.read_text(encoding="utf-8")) != protocol:
+            raise RuntimeError("Existing C2 protocol differs; choose a new output root.")
+    else:
+        write_json(protocol_path, protocol)
     truth_file = private / "truth_by_case.json"
     truth = json.loads(truth_file.read_text(encoding="utf-8")) if truth_file.exists() else {
         "scope": "Generated model inputs for post-freeze validation only; never a fit/predict input.", "cases": {}}
@@ -159,8 +195,15 @@ def main():
                     saved = json.loads(private_path.read_text(encoding="utf-8"))
                     if saved["runtime_id"] != runtime_id or not meta_path.exists() or not raw_path.exists() or sha(raw_path) != saved["raw_sha256"]:
                         raise RuntimeError(f"Existing {name} has incompatible provenance or missing/changed data; use a fresh output root.")
+                    existing_meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                    if (existing_meta.get("clock_schema") != CLOCK_SCHEMA
+                            or existing_meta.get("time_sampling") != "observed_solver_clock"
+                            or existing_meta.get("record_schema_source_sha256") != SCHEMA_SOURCE_SHA256):
+                        raise RuntimeError(f"Existing {name} is not an observed-clock record; use a new output root.")
                     print("Already completed " + name, flush=True)
                     continue
+                if meta_path.exists() or raw_path.exists():
+                    raise RuntimeError(f"Existing partial {name} cannot be overwritten; use a new output root.")
                 world = mp.World(cellsize=CELL)
                 afm = mp.Antiferromagnet(world, mp.Grid((1, 1, 1)))
                 for sub in (afm.sub1, afm.sub2):
@@ -197,26 +240,40 @@ def main():
                 sample = 200e-15
                 count = int(round(sample / step))
                 sample_count = (401 if kind == "pulse" else 201) if precision else 1001
-                t = np.arange(sample_count) * sample
+                planned_t = np.arange(sample_count) * sample
+                t = np.empty(sample_count, dtype=float)
                 m = np.empty((len(t), 6))
                 start = time.perf_counter()
                 for i in range(len(t)):
                     if i:
                         world.timesolver.steps(count)
+                    t[i] = world.timesolver.time
+                    validate_clock_sample(t[i], planned_t[i], t[i - 1] if i else None, sample)
                     m[i] = [*afm.sub1.magnetization.average(), *afm.sub2.magnetization.average()]
                     if i % 200 == 0:
                         write_json(here / "progress.json", {"run": name, "sample": i, "samples": len(t), "wall_s": time.perf_counter() - start})
                 field = np.array([waveform(ti, wave) if kind == "pulse" else 0.0 for ti in t])
-                np.savez_compressed(raw_path, t_s=t, m6=m, Mx=m[:, 0] + m[:, 3], B_T=field)
-                raw_hash = sha(raw_path)
-                write_json(meta_path, {"case_id": cid, "variant": variant, "record_type": kind,
+                metadata = {"case_id": cid, "variant": variant, "record_type": kind,
                     "time_units": "s", "field_units": "T", "magnetization": "mA,mB unit vectors; Mx=mAx+mBx",
-                    "raw_file": raw_path.name, "raw_sha256": raw_hash, "waveform": wave if kind == "pulse" else None,
+                    "raw_file": raw_path.name, "waveform": wave if kind == "pulse" else None,
                     "integration_step_s": step, "sample_interval_s": sample,
-                    "initial_condition": "physical sublattice seed" if kind != "pulse" else "collinear equilibrium, zero B and response before pulse"})
+                    "clock_schema": CLOCK_SCHEMA, "time_sampling": "observed_solver_clock",
+                    "time_source": "world.timesolver.time at each stored magnetic state", "time_interpolated": False,
+                    "planned_start_s": float(planned_t[0]), "planned_sample_count": sample_count,
+                    "time_dtype": t.dtype.str, "clock_absolute_tolerance_s": CLOCK_TOL_S,
+                    "schedule_absolute_tolerance_s": SCHEDULE_TOL_S,
+                    "record_schema_source_sha256": SCHEMA_SOURCE_SHA256,
+                    "initial_condition": "physical sublattice seed" if kind != "pulse" else "collinear equilibrium, zero B and response before pulse"}
+                raw = {"t_s": t, "planned_t_s": planned_t, "m6": m, "Mx": m[:, 0] + m[:, 3], "B_T": field}
+                validate_record_schema(metadata, raw, name=name)
+                np.savez_compressed(raw_path, **raw)
+                raw_hash = sha(raw_path)
+                metadata["raw_sha256"] = raw_hash
+                write_json(meta_path, metadata)
                 wall_s = time.perf_counter() - start
                 write_json(private_path, {**tr, "case_id": cid, "runtime_id": runtime_id,
                     "precision": mp.FP_PRECISION, "source_sha256": source_hash, "raw_sha256": raw_hash,
+                    "record_schema_source_sha256": SCHEMA_SOURCE_SHA256,
                     "native_Gilbert": True, "cavity_enabled": False, "external_field_in_total_Gilbert_field": True,
                     "seed_amplitude": float(np.linalg.norm(initial)), "grid": [1, 1, 1], "cell_m": list(CELL),
                     "wall_s": wall_s, "max_transverse_sublattice_radius": float(max(

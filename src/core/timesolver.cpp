@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 #include "field.hpp"
 #include "fieldquantity.hpp"
@@ -47,8 +48,18 @@ real TimeSolver::sensibleTimeStep() const {
 }
 
 void TimeSolver::setEquations(std::vector<DynamicEquation> eqs) {
-  eqs_ = eqs;
-  if (!fixedTimeStep_) timestep_ = sensibleTimeStep();
+  // Activation can evaluate a newly registered RHS to choose an adaptive dt.
+  // A refused configuration must not leave its equations or a changed dt.
+  auto previous = std::move(eqs_);
+  const real previousTimestep = timestep_;
+  eqs_ = std::move(eqs);
+  try {
+    if (!fixedTimeStep_) timestep_ = sensibleTimeStep();
+  } catch (...) {
+    eqs_ = std::move(previous);
+    timestep_ = previousTimestep;
+    throw;
+  }
 }
 
 void TimeSolver::setSensibleTimestepDefault(real dt) {

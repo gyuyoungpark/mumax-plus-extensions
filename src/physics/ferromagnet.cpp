@@ -10,6 +10,7 @@
 #include <cfloat>
 
 #include "fieldquantity.hpp"
+#include "antiferromagnet.hpp"
 #include "gpubuffer.hpp"
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
@@ -126,11 +127,17 @@ bool Ferromagnet::isSublattice() const {
 }
 
 void Ferromagnet::minimize(real tol, int nSamples) {
+  if (const auto* afm = dynamic_cast<const Antiferromagnet*>(hostMagnet_))
+    if (afm->enableCavityAfm())
+      throw std::invalid_argument("Disable the host cavity before spin-only sublattice.minimize()");
   Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
 }
 
 void Ferromagnet::relax(real tol) {
+  if (const auto* afm = dynamic_cast<const Antiferromagnet*>(hostMagnet_))
+    if (afm->enableCavityAfm())
+      throw std::invalid_argument("Disable the host cavity before spin-only sublattice.relax()");
   real threshold = this->RelaxTorqueThreshold;
   Relaxer relaxer(this, {threshold}, tol);
   relaxer.exec();
