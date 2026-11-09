@@ -56,7 +56,17 @@
  __global__ void k_SpinHallConductivity(CuField shField,
                                         const CuField octField,
                                         const CuParameter sigmaSH) {
-@@ -114,7 +117,7 @@
+@@ -101,8 +104,7 @@
+ 
+ Field evalAnomalousHallResistivity(const NcAfm* magnet) {
+   Field rhoField(magnet->system(), 3, real3{0, 0, 0});
+-  if (anomalousHallAssuredZero(magnet))
+-    return rhoField;
++  // Even a zero Hall source must validate the longitudinal input.
+ 
+   Field sigmaField = evalAnomalousHallConductivity(magnet);
+   auto sigmaXX = magnet->sigmaXX.cu();
+@@ -114,7 +116,7 @@
  
  Field evalSpinHallConductivity(const NcAfm* magnet) {
    Field shField(magnet->system(), 3, real3{0, 0, 0});
