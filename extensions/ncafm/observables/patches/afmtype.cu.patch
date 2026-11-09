@@ -1,0 +1,19 @@
+--- a/src/afmtype.cu
++++ b/src/afmtype.cu
+@@ -10,11 +10,11 @@
+ #include "reduce.hpp"
+ #include "world.hpp"
+ 
+-// Direction-dependent AFM exchange kernel.
+-// Uses afmex_nn_dir = (Jx, Jy, Jz) instead of the scalar afmex_nn.
+-// Positive J = FM coupling, Negative J = AFM coupling.
+-// This enables G-type (all AFM), A-type (FM in-plane, AFM along z),
+-// and C-type (AFM in-plane, FM along z) orderings.
++// Direction-dependent INTERSUBLATTICE GRADIENT stiffness (J/m).
++// Its signs are not the signs of atomistic nearest-neighbor bonds.
++// A/C/G atomic ordering requires an explicit lattice/bond-to-continuum map.
++// Use the reciprocal variational face operator for the corrected boundary model;
++// this preserved historical kernel is not validated for arbitrary DMI boundaries.
+ __global__ void k_AnisotropicAfmExchangeField(
+     CuField hField,
+     const CuField m1Field,

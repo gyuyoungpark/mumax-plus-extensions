@@ -1,0 +1,30 @@
+[
+  {
+    "source": "src/ncafm_ahe.cu",
+    "sha256": "f5049290747baa53ef39d9053ba7eec2418fca16dacd7eb78785a65d4c02ac33",
+    "patch": "ncafm_ahe.cu.patch",
+    "applies_to": "version-specific local legacy snapshot; not public master",
+    "native_runtime_validated": false
+  },
+  {
+    "source": "src/ncafm_ahe.hpp",
+    "sha256": "9f645d10546fcffc6ddd1eb790f364b7ead7693db29bccb4bd7330dcafc69a95",
+    "patch": "ncafm_ahe.hpp.patch",
+    "applies_to": "version-specific local legacy snapshot; not public master",
+    "native_runtime_validated": false
+  },
+  {
+    "source": "src/physics/ferromagnet.hpp",
+    "sha256": "0a646defdc62c21234c5fb66ce35696c3a7a458f6068e25e124b68dbec12da69",
+    "patch": "ferromagnet.hpp.patch",
+    "applies_to": "version-specific local legacy snapshot; not public master",
+    "native_runtime_validated": false
+  },
+  {
+    "source": "src/afmtype.cu",
+    "sha256": "ba524625950b4c5ef6570eff6a82a8ca3ec4a26937a5f79665da9b1ab4e3abd9",
+    "patch": "afmtype.cu.patch",
+    "applies_to": "version-specific local legacy snapshot; not public master",
+    "native_runtime_validated": false
+  }
+]

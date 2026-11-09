@@ -1,0 +1,67 @@
+--- a/src/ncafm_ahe.cu
++++ b/src/ncafm_ahe.cu
+@@ -1,3 +1,4 @@
++#include <cmath>
+ #include "cudalaunch.hpp"
+ #include "field.hpp"
+ #include "ncafm.hpp"
+@@ -7,7 +8,7 @@
+ 
+ // Anomalous Hall conductivity kernel.
+ // sigma_xy(r) = sigma_AH * oct_z(r)
+-// where oct = weighted octupole vector and sigma_AH is the AHE
++// where oct is a registered proxy, not a site-based multipole; sigma_AH is an assigned
+ // coefficient (S/m) set by the user.
+ __global__ void k_AnomalousHallConductivity(CuField ahField,
+                                             const CuField octField,
+@@ -32,8 +33,8 @@
+                                      sAH * oct.z});
+ }
+ 
+-// Anomalous Hall resistivity kernel (thin-film approximation).
+-// rho_xy ~ sigma_xy / sigma_xx^2
++// Exact antisymmetric resistivity for isotropic longitudinal conductivity.
++// Same (yz,zx,xy) packing: rho_H=-sigma_H/(sigmaXX^2+|sigma_H|^2).
+ __global__ void k_AnomalousHallResistivity(CuField rhoField,
+                                            const CuField sigmaField,
+                                            const CuParameter sigmaXX) {
+@@ -48,19 +49,21 @@
+   real3 sig = sigmaField.vectorAt(idx);
+   real sxx = sigmaXX.valueAt(idx);
+ 
+-  if (sxx == 0) {
+-    rhoField.setVectorInCell(idx, real3{0, 0, 0});
++  if (!(sxx > 0) || !isfinite(sxx) || !isfinite(sig.x) ||
++      !isfinite(sig.y) || !isfinite(sig.z)) {
++    // Invalid constitutive input must remain visible to the host caller.
++    rhoField.setVectorInCell(idx, real3{NAN, NAN, NAN});
+     return;
+   }
+-
+-  real inv_sxx2 = 1.0 / (sxx * sxx);
+-  rhoField.setVectorInCell(idx, real3{sig.x * inv_sxx2,
+-                                      sig.y * inv_sxx2,
+-                                      sig.z * inv_sxx2});
++  const real scale = fmax(sxx, fmax(fabs(sig.x), fmax(fabs(sig.y), fabs(sig.z))));
++  const real3 h = sig / scale;
++  const real s = sxx / scale;
++  const real factor = -1 / (scale * (s*s + h.x*h.x + h.y*h.y + h.z*h.z));
++  rhoField.setVectorInCell(idx, h * factor);
+ }
+ 
+-// Spin Hall conductivity kernel.
+-// sigma_SH(r) = sigma_SH0 * oct_z(r)
++// Assigned vector response with an independent coefficient.
++// Legacy API name retained; this is not a physical rank-3 spin Hall tensor.
+ __global__ void k_SpinHallConductivity(CuField shField,
+                                        const CuField octField,
+                                        const CuParameter sigmaSH) {
+@@ -114,7 +117,7 @@
+ 
+ Field evalSpinHallConductivity(const NcAfm* magnet) {
+   Field shField(magnet->system(), 3, real3{0, 0, 0});
+-  if (anomalousHallAssuredZero(magnet))
++  if (magnet->sigmaSH.assuredZero())
+     return shField;
+ 
+   Field octField = evalOctupoleVector(magnet);

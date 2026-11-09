@@ -1,0 +1,27 @@
+--- a/src/ncafm_ahe.hpp
++++ b/src/ncafm_ahe.hpp
+@@ -5,7 +5,8 @@
+ class NcAfm;
+ class Field;
+ 
+-// Anomalous Hall conductivity from the octupole order parameter.
++// Assigned Hall conductivity from a registered sublattice proxy.
++// No general site-based multipole or material Hall coefficient is inferred.
+ // Computes sigma_ij = sigma_AH * epsilon_ijk * oct_k per cell,
+ // where sigma_AH is a material-dependent anomalous Hall conductivity
+ // coefficient (in S/m).
+@@ -15,11 +16,11 @@
+ Field evalAnomalousHallConductivity(const NcAfm*);
+ NcAfm_FieldQuantity anomalousHallConductivityQuantity(const NcAfm*);
+ 
+-// Anomalous Hall resistivity rho_xy = sigma_xy / (sigma_xx^2 + sigma_xy^2)
+-// Approximate thin-film limit: rho_xy ~ sigma_xy / sigma_xx^2
++// Exact same-index antisymmetric packing rho_H=-h/(sigma_xx^2+|h|^2).
++// The isotropic longitudinal coefficient must be finite and positive.
+ Field evalAnomalousHallResistivity(const NcAfm*);
+ NcAfm_FieldQuantity anomalousHallResistivityQuantity(const NcAfm*);
+ 
+-// Spin Hall conductivity from octupole order
++// Legacy assigned vector response; not a physical rank-three spin Hall tensor.
+ Field evalSpinHallConductivity(const NcAfm*);
+ NcAfm_FieldQuantity spinHallConductivityQuantity(const NcAfm*);

@@ -1,0 +1,11 @@
+--- a/src/physics/ferromagnet.hpp
++++ b/src/physics/ferromagnet.hpp
+@@ -56,7 +56,7 @@
+   mutable PoissonSystem poissonSystem;
+   bool enableDemag;
+   bool enableOpenBC;
+-  bool enableVariationalSpatial = false;
++  bool enableVariationalSpatial = true;
+   bool enableZhangLiTorque;
+   bool enableSlonczewskiTorque;
+   bool enableSOT;
