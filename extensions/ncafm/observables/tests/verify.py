@@ -20,6 +20,7 @@ from afm_observables.multipole import solid_gradients
 from afm_observables.transport import conductivity,resistivity,hall_resistivity_isotropic,assigned_vector_response
 from afm_observables.gradient import require_coercive
 from afm_observables.field_adapter import site_coefficients,evaluate_fields,cuda_real_coefficients
+from afm_observables.variational import energy_field
 
 def digest(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
@@ -86,6 +87,27 @@ def test_field_adapter(rng):
     real=cuda_real_coefficients(c)
     np.testing.assert_array_equal(real[:7]+1j*real[7:],c)
 
+def test_variational_faces(rng):
+    # Mathematical derivative controls, not material parameters or predictions.
+    coordinates=np.array(list(__import__('itertools').product(range(2),range(3),range(2))))
+    edges=np.array([(i,j) for i in range(len(coordinates)) for j in range(i+1,len(coordinates))
+                    if np.abs(coordinates[i]-coordinates[j]).sum()==1])
+    m=rng.normal(size=(len(coordinates),3,3)); m/=np.linalg.norm(m,axis=2)[:,:,None]
+    mu=rng.uniform(.5,1.5,size=m.shape[:2]); mu[0,1]=0
+    a=rng.normal(size=(len(edges),3,3)); g=a@a.transpose(0,2,1)
+    d=rng.normal(size=g.shape+(3,))*.1
+    energy,gradient,field=energy_field(m,mu,edges,g,d)
+    np.testing.assert_allclose(-field*mu[:,:,None],gradient,rtol=1e-14,atol=1e-14)
+    for _ in range(12):
+        v=rng.normal(size=m.shape); v/=np.linalg.norm(v)
+        h=1e-5
+        fd=(energy_field(m+h*v,mu,edges,g,d)[0]-energy_field(m-h*v,mu,edges,g,d)[0])/(2*h)
+        np.testing.assert_allclose(fd,np.sum(gradient*v),rtol=1e-8,atol=2e-8)
+    # Reversing a face requires D'=-D^T. G is reciprocal.
+    reverse=energy_field(m,mu,edges[:,::-1],g,-d.transpose(0,2,1,3))
+    np.testing.assert_allclose(reverse[0],energy,rtol=2e-14)
+    np.testing.assert_allclose(reverse[1],gradient,rtol=2e-14,atol=2e-14)
+
 def main():
     parser=argparse.ArgumentParser(); parser.add_argument('--out',required=True)
     parser.add_argument('--stop-after',type=int)
@@ -102,7 +124,7 @@ def main():
     p=out/'checkpoint.json'; rng=np.random.default_rng(identity['seed'])
     state=json.loads(p.read_text()) if p.exists() else dict(next_index=0,passed=[],rng_state=rng.bit_generator.state)
     rng.bit_generator.state=state['rng_state']
-    tasks=[test_rank3,test_transport,test_proxy_gradient,test_field_adapter]
+    tasks=[test_rank3,test_transport,test_proxy_gradient,test_field_adapter,test_variational_faces]
     for i in range(state['next_index'],len(tasks)):
         tasks[i](rng)
         state.update(next_index=i+1,rng_state=rng.bit_generator.state)

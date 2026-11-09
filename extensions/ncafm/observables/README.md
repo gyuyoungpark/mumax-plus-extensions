@@ -49,6 +49,18 @@ An indefinite second-order gradient expansion requires an explicit cutoff
 or additional stabilizing terms. A failed sufficient continuum coercivity
 test alone does not prove instability of a finite-cutoff lattice model.
 
+`variational.energy_field` supplies a CPU reference for a declared face-energy
+model with heterogeneous cross-sublattice stiffness and directed DMI. It
+returns the same discrete energy's Cartesian derivative and effective B in
+tesla. Missing faces implement free boundaries without independently selected
+ghost spins. Coefficients are face energies (J), already including mesh
+geometry. Cross-gradient and DMI masking rules are explicit in the API.
+The tests cover a three-dimensional graph, multiple sublattices, a partially
+inactive sublattice, nonuniform coefficients, face reversal and finite
+differences. This fixes energy/field consistency for this specified model;
+it is not a claim about every continuum material interface. The historical
+GPU DMI/Neumann kernel is not silently enabled or replaced by this CPU API.
+
 ## Checks and native scope
 
 Requires Python and NumPy. From this folder:
